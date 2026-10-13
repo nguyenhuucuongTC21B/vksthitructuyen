@@ -310,6 +310,34 @@ Lần chạy thứ 2 kiểm tra tuần tự 5 mức — script in rõ bước n�
 Khi cả 5 mức đều ✓ → cấu hình đã đúng 100%. Copy 3 biến từ `.env`
 (`SESSION_SECRET`, `GOOGLE_SERVICE_ACCOUNT_JSON`, `GOOGLE_DRIVE_FOLDER_ID`) sang Render là xong.
 
+### Bước 9 — Kiểm tra Drive NGAY TRÊN RENDER (không cần máy local)
+
+> `check-drive.js` chỉ chạy được trên máy bạn. Còn trên Render thì sao? Từ phiên bản mới,
+> **Admin Dashboard có nút kiểm tra Drive chạy trực tiếp trên server** — chính là 5 mức giống
+> Bước 8 nhưng thực hiện bởi chính máy chủ Render đang chạy hệ thống:
+
+1. Mở `https://<ten-app>.onrender.com/admin.html` và đăng nhập Admin.
+2. Nhìn **banner trạng thái đồng bộ** ngay đầu trang:
+   - 🔴 **Đỏ** "CHẾ ĐỘ CỤC BỘ" → server chưa kết nối Drive (thiếu/sai biến môi trường).
+   - 🟡 **Vàng** "Có N file chưa đồng bộ" → env có khai báo nhưng lệnh ghi lên Drive THẤT BẠI
+     (banner sẽ in **Lỗi gần nhất** cụ thể, ví dụ `403 The caller does not have permission`).
+   - 🟢 **Xanh** "Dữ liệu đã đồng bộ an toàn" → mọi thứ OK.
+3. Bấm **"🔍 Kiểm tra Drive ngay"** → một bảng chẩn đoán hiện ra với 5 mức kiểm tra,
+   mức nào FAIL sẽ có ô **"Cách sửa"** viết đúng nút bấm / đúng biến cần sửa.
+4. Sửa xong (theo gợi ý) → bấm **"Kiểm tra lại"** trong bảng → tới khi hiện
+   **"✅ Kết nối Google Drive: TỐT"** → bấm **"⟳ Đồng bộ ngay"** trên banner để đẩy toàn bộ
+   dữ liệu đang chờ lên Drive. Nếu server đang kẹt ở chế độ local mà chẩn đoán PASS,
+   server **tự kết nối lại Drive mà không cần restart**.
+
+**Sửa biến môi trường trên Render như thế nào?** Render Dashboard → chọn service
+`thi-truc-tuyen` → tab **Environment** → **Add Environment Variable** (sửa giá trị cũ bằng nút
+chi tiết bên phải từng biến) → **Save Changes** → sang tab **Manual Deploy** → bấm
+**Deploy latest commit** → chờ 2–4 phút deploy xong rồi đăng nhập lại Admin để kiểm tra lại.
+
+> ⚠️ Lưu ý: sửa biến môi trường trên Render **bắt buộc phải Manual Deploy** — chỉ Save Changes
+> không làm server chạy lại với giá trị mới. Sau deploy, giữ tab admin.html mở và bấm chờ
+> 20–60 giây (Render khởi động lạnh) rồi đăng nhập lại.
+
 ### Bảng xử lý 6 lỗi thường gặp
 
 | Thông báo lỗi (log server / script) | Nguyên nhân | Cách xử lý |
@@ -423,10 +451,21 @@ card đề thi có 3 nút **Xem đề** (xem toàn bộ câu hỏi, đáp án đ
 
 **Đề thi tạo xong ~15 phút thì biến mất?** Render Free ngủ sau 15 phút không có truy cập — khi ngủ,
 mọi dữ liệu chưa ghi lên Google Drive bị xóa sạch. Nghĩa là Google Drive của bạn đang KHÔNG sync được.
-Kiểm tra: mở `/admin.html` xem banner đầu trang (đỏ = chưa cấu hình Drive, vàng = sync đang lỗi,
-xanh = đã an toàn); hoặc mở `/api/health` xem `mode` và `pending`. Sửa xong cấu hình Drive (mục 3)
-theo dõi log Render thấy `[store] Da dong bo ...` rồi mới ra đề thật. Xem thêm "Lưu ý khi vận hành
+Kiểm tra: mở `/admin.html` → bấm **"🔍 Kiểm tra Drive ngay"** (Bước 9) — công cụ chạy ngay trên server
+Render, chỉ ra chính xác mức nào lỗi và cách sửa; sau khi sửa env var trên Render nhớ **Manual Deploy**,
+rồi bấm **"⟳ Đồng bộ ngay"** để đẩy dữ liệu chờ lên Drive. Xem thêm "Lưu ý khi vận hành
 trên Render Free" ở trên.
+
+**Banner vàng "Có N file chưa đồng bộ" báo nguyên nhân gì?** Banner mới in thẳng **Lỗi gần nhất**
+do server ghi nhận (ví dụ `403 The caller does not have permission` → thiếu Share / sai quyền;
+`DECODER routines::unsupported` → chuỗi Base64 key bị hỏng khi copy). Bấm "Kiểm tra Drive ngay"
+để xem đủ 5 mức kèm ô "Cách sửa" cho từng mức.
+
+**Sửa cấu hình xong rồi, dữ liệu có tự lên Drive không?** Có — hệ thống tự thử lại mỗi 30 giây.
+Ngoài ra, khi server khởi động mà KHÔNG đọc được dữ liệu cũ trên Drive, phiên bản mới sẽ **KHÔNG
+cho phép upload đè** — nó chờ đọc được dữ liệu cũ rồi **GỘP** (bản ghi cũ trên Drive được giữ,
+bản ghi mới trong RAM được thêm vào) trước khi ghi, nên không bao giờ có chuyện sync fix xong lại
+làm mất dữ liệu cũ trên Drive.
 
 **Đổi nội dung trang chủ / tên cuộc thi / hạn thi?** Sửa trực tiếp `public/index.html`
 và hằng số `DEADLINE` trong `public/assets/js/home.js`.

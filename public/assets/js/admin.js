@@ -434,18 +434,28 @@ async function checkSyncStatus() {
     banner.classList.add('hidden');
     return;
   }
-  const pendingFiles = (health.sync || []).filter((s) => s.pending);
+  const syncFiles = health.sync || [];
+  const pendingFiles = syncFiles.filter((s) => s.pending);
+  // Lỗi cụ thể gần nhất (từ dataStore — do server ghi nhận khi upload fail).
+  const firstErrorFile = pendingFiles.find((s) => s.lastError);
+  const errDetail = firstErrorFile
+    ? `<div class="mt-2 p-2.5 rounded-lg bg-white/70 border border-amber-200 text-xs leading-relaxed">
+         <b>Lỗi gần nhất (${esc(firstErrorFile.file)}):</b> ${esc(firstErrorFile.lastError)}
+       </div>`
+    : '';
 
   if (health.mode !== 'drive') {
     banner.className = 'mb-5 rounded-2xl border p-4 flex flex-wrap items-center gap-3 bg-red-50 border-red-300';
     banner.innerHTML = `
       <span class="text-xl">🚨</span>
       <div class="flex-1 min-w-0 text-sm text-red-800">
-        <b>CHẾ ĐỘ CỤC BỘ — dữ liệu KHÔNG bền vững!</b> Máy chủ chưa cấu hình Google Drive,
+        <b>CHẾ ĐỘ CỤC BỘ — dữ liệu KHÔNG bền vững!</b> Máy chủ chưa kết nối được Google Drive,
         mọi đề thi / điểm số chỉ nằm trong bộ nhớ tạm và <b>sẽ mất khi Render ngủ sau 15 phút</b>.
         Hãy khai báo biến <code class="bg-red-100 px-1 rounded">GOOGLE_SERVICE_ACCOUNT_JSON</code> và
         <code class="bg-red-100 px-1 rounded">GOOGLE_DRIVE_FOLDER_ID</code> trên Render (README mục 3), sau đó tạo lại đề thi.
-      </div>`;
+        <div class="mt-2">Bấm "Kiểm tra Drive ngay" để biết chính xác máy chủ đang thiếu/sai gì.</div>
+      </div>
+      <button onclick="runDriveCheck()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition shrink-0">🔍 Kiểm tra Drive ngay</button>`;
     banner.classList.remove('hidden');
     return;
   }
@@ -457,15 +467,19 @@ async function checkSyncStatus() {
       <div class="flex-1 min-w-0 text-sm text-amber-800">
         <b>Có ${pendingFiles.length} file chưa đồng bộ lên Google Drive</b>
         (${pendingFiles.map((s) => s.file).join(', ')}). Dữ liệu còn an toàn trong bộ nhớ tạm,
-        nhưng sẽ mất nếu máy chủ tắt trước khi sync thành công — hãy kiểm tra cấu hình Drive
-        (README mục 3, chạy: node tools/check-drive.js) rồi bấm "Đồng bộ ngay".
+        nhưng sẽ mất nếu máy chủ tắt trước khi sync thành công.
+        <b>Bấm "Kiểm tra Drive ngay" để biết chính xác nguyên nhân và cách sửa</b> (chạy trực tiếp trên server, không cần tool local).
+        ${errDetail}
       </div>
-      <button onclick="forceSyncNow()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition shrink-0">⟳ Đồng bộ ngay</button>`;
+      <div class="flex flex-col gap-2 shrink-0">
+        <button onclick="runDriveCheck()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2 rounded-lg transition">🔍 Kiểm tra Drive ngay</button>
+        <button onclick="forceSyncNow()" class="border border-amber-500 text-amber-700 hover:bg-amber-100 font-bold text-xs px-4 py-2 rounded-lg transition">⟳ Đồng bộ ngay</button>
+      </div>`;
     banner.classList.remove('hidden');
     return;
   }
 
-  const lastSync = (health.sync || [])
+  const lastSync = syncFiles
     .map((s) => s.lastSyncedAt)
     .filter(Boolean)
     .sort()
@@ -487,6 +501,52 @@ async function forceSyncNow() {
     await checkSyncStatus();
   } catch (err) {
     toast(err.message, 'error');
+  }
+}
+
+/* --------- CHẨN ĐOÁN GOOGLE DRIVE 5 MỨC NGAY TRÊN SERVER ---------
+ * Gọi POST /admin/drive-check — máy chủ tự kiểm tra: biến env → key Service
+ * Account → đọc thư mục → ghi file test → xóa file test. Mỗi mức FAIL kèm
+ * gợi ý sửa cụ thể. Nếu hết mức PASS mà server đang kẹt chế độ local, máy
+ * chủ TỰ KẾT NỐI LẠI (không cần restart). */
+async function runDriveCheck() {
+  openModal('modal-drive-check');
+  const body = document.getElementById('dc-body');
+  body.innerHTML = '<p class="text-center py-6 text-slate-400">Đang kiểm tra kết nối tới Google Drive (tối đa ~15 giây)...</p>';
+  try {
+    const r = await api('/admin/drive-check', { method: 'POST' });
+    const stepIcon = (ok) => (ok ? '✅' : '❌');
+    const stepsHtml = r.steps
+      .map(
+        (s) => `
+        <div class="rounded-xl border ${s.ok ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'} p-3">
+          <div class="flex items-start gap-2">
+            <span>${stepIcon(s.ok)}</span>
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold ${s.ok ? 'text-emerald-800' : 'text-red-800'} text-sm">${esc(s.name)}</div>
+              <div class="text-xs mt-1 ${s.ok ? 'text-emerald-700' : 'text-red-700'} leading-relaxed break-words">${esc(s.detail)}</div>
+              ${s.advice ? `<div class="mt-2 p-2 rounded-lg bg-white border border-slate-200 text-xs text-slate-700 leading-relaxed"><b>Cách sửa:</b> ${esc(s.advice)}</div>` : ''}
+            </div>
+          </div>
+        </div>`
+      )
+      .join('');
+    const healedNote = r.healed
+      ? '<div class="mt-3 p-3 rounded-xl bg-sky-50 border border-sky-200 text-sky-800 text-xs leading-relaxed"><b>🎉 Đã tự kết nối lại Google Drive thành công!</b> Máy chủ đã chuyển sang chế độ Drive mà không cần restart — bấm "Đồng bộ ngay" trên banner để đẩy dữ liệu lên Drive.</div>'
+      : '';
+    body.innerHTML = `
+      <div class="rounded-xl p-3 mb-3 text-sm font-semibold ${r.ok ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-300'}">
+        ${r.ok ? '✅ Kết nối Google Drive: TỐT' : '❌ Kết nối Google Drive: CÓ LỖI'}
+        ${r.clientEmail ? `<span class="block text-xs font-normal mt-1 text-slate-500">Service account: ${esc(r.clientEmail)}</span>` : ''}
+        ${r.folderId ? `<span class="block text-xs font-normal mt-0.5 text-slate-500">Folder ID: ${esc(r.folderId)}</span>` : ''}
+      </div>
+      <div class="space-y-2">${stepsHtml}</div>
+      ${healedNote}
+      <div class="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs leading-relaxed">
+        ${esc(r.message)}
+      </div>`;
+  } catch (err) {
+    body.innerHTML = `<div class="rounded-xl bg-red-50 border border-red-300 p-4 text-sm text-red-800">Không chạy được chẩn đoán: ${esc(err.message)}</div>`;
   }
 }
 setInterval(checkSyncStatus, 60_000);

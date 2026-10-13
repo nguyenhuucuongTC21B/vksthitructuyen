@@ -5,6 +5,8 @@
  *  1. Đọc thông tin Service Account từ biến môi trường (Base64 / JSON thô / đường dẫn file).
  *  2. Cung cấp các hàm: tìm file theo tên, tạo file, tải file JSON, ghi đè file JSON.
  *  3. Tự động retry với backoff khi gặp lỗi tạm thời của Google (429/5xx/mạng).
+ *  4. runDiagnostic(): kiểm tra sống 5 mức ngay trên server — admin dashboard dùng
+ *     để tự chẩn đoán khi đồng bộ lỗi (không cần chạy tool trên máy local).
  *
  * Toàn bộ hàm đều bất đồng bộ (Promise) — việc ghi file lên Drive KHÔNG BAO GIỜ
  * chặn luồng xử lý request của người dùng (chi tiết xem store/dataStore.js).
@@ -13,51 +15,16 @@
 
 const { Readable } = require('stream');
 const { google } = require('googleapis');
+const { adviceForError } = require('../utils/driveAdvice');
 
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
+const TEST_FILE_NAME = '__drive_check__.json';
 
 let drive = null;          // Đối tượng drive API (null khi chạy chế độ cục bộ).
 let folderId = null;       // ID thư mục lưu trữ 3 file JSON.
 let mode = 'local';        // 'drive' | 'local'
 
 /* ------------------------------ CẤU HÌNH ------------------------------ */
-
-/**
- * Khởi tạo kết nối. Ưu tiên:
- *  1) GOOGLE_SERVICE_ACCOUNT_JSON  (Base64 hoặc chuỗi JSON thô)
- *  2) GOOGLE_APPLICATION_CREDENTIALS (đường dẫn file key — tiện khi chạy local)
- */
-function init() {
-  folderId = process.env.GOOGLE_DRIVE_FOLDER_ID || null;
-  const raw = (process.env.GOOGLE_SERVICE_ACCOUNT_JSON || '').trim();
-
-  if (raw && folderId) {
-    const creds = parseServiceAccount(raw);
-    const auth = new google.auth.JWT({
-      email: creds.client_email,
-      key: creds.private_key,
-      scopes: [DRIVE_SCOPE],
-    });
-    drive = google.drive({ version: 'v3', auth });
-    mode = 'drive';
-    console.log(`[drive] Da ket noi Google Drive (service account: ${creds.client_email})`);
-  } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS && folderId) {
-    const auth = new google.auth.GoogleAuth({
-      keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-      scopes: [DRIVE_SCOPE],
-    });
-    drive = google.drive({ version: 'v3', auth });
-    mode = 'drive';
-    console.log('[drive] Da ket noi Google Drive (keyfile)');
-  } else {
-    mode = 'local';
-    console.warn(
-      '[drive] CHUA cau hinh Google Drive (thieu GOOGLE_SERVICE_ACCOUNT_JSON / GOOGLE_DRIVE_FOLDER_ID).' +
-        ' He thong chay o CHE DO CUC BO: du lieu ghi vao thu muc ./data (tien cho dev, KHONG ben vinh nhu Drive).'
-    );
-  }
-  return mode;
-}
 
 /** Chấp nhận Base64 hoặc chuỗi JSON nguyên văn; tự sửa private_key bị mất ký tự \n. */
 function parseServiceAccount(raw) {
@@ -73,12 +40,105 @@ function parseServiceAccount(raw) {
   return creds;
 }
 
+/**
+ * Xây dựng một drive client RIÊNG LẬP từ biến môi trường hiện tại.
+ * Không đụng vào trạng thái toàn cục — runDiagnostic dùng hàm này để kiểm tra
+ * mà không phá vỡ kết nối đang chạy.
+ */
+function buildDriveClient() {
+  const fid = (process.env.GOOGLE_DRIVE_FOLDER_ID || '').trim();
+  const raw = (process.env.GOOGLE_SERVICE_ACCOUNT_JSON || '').trim();
+  const keyFile = (process.env.GOOGLE_APPLICATION_CREDENTIALS || '').trim();
+
+  if (!raw && !keyFile) {
+    const e = new Error('Chưa khai báo GOOGLE_SERVICE_ACCOUNT_JSON (chuỗi Base64 của file key Service Account).');
+    e.advice = 'Lấy key theo README mục 3 (Bước 1–7), sau đó khai báo biến trên Render: Dashboard → Service → Environment → Add Environment Variable → Save Changes → Manual Deploy.';
+    return { error: e };
+  }
+  if (!fid) {
+    const e = new Error('Chưa khai báo GOOGLE_DRIVE_FOLDER_ID (ID thư mục Drive chứa 3 file JSON).');
+    e.advice = 'Mở thư mục trên drive.google.com, copy ĐOẠN SAU /folders/ trên thanh địa chỉ, khai báo biến trên Render rồi Manual Deploy.';
+    return { error: e };
+  }
+  if (fid.includes('/folders/')) {
+    const e = new Error('GOOGLE_DRIVE_FOLDER_ID đang chứa cả URL thay vì chỉ ID.');
+    e.advice = `Bạn đã dán nguyên URL. Chỉ giữ lại đoạn sau /folders/ (hiện tại: "${fid}"). Sửa biến trên Render rồi Manual Deploy.`;
+    return { error: e };
+  }
+
+  try {
+    let auth;
+    let clientEmail = '(không đọc được email)';
+    if (raw) {
+      const creds = parseServiceAccount(raw);
+      clientEmail = creds.client_email;
+      auth = new google.auth.JWT({
+        email: creds.client_email,
+        key: creds.private_key,
+        scopes: [DRIVE_SCOPE],
+      });
+    } else {
+      auth = new google.auth.GoogleAuth({
+        keyFile,
+        scopes: [DRIVE_SCOPE],
+      });
+    }
+    return {
+      drive: google.drive({ version: 'v3', auth }),
+      folderId: fid,
+      clientEmail,
+    };
+  } catch (err) {
+    err.advice = err.advice || adviceForError(err) ||
+      'Key không đọc được — kiểm tra chuỗi Base64 (đứt dòng, thiếu ký tự) theo README mục 3 Bước 7.';
+    return { error: err };
+  }
+}
+
+/**
+ * Khởi tạo kết nối toàn cục. Ưu tiên:
+ *  1) GOOGLE_SERVICE_ACCOUNT_JSON  (Base64 hoặc chuỗi JSON thô)
+ *  2) GOOGLE_APPLICATION_CREDENTIALS (đường dẫn file key — tiện khi chạy local)
+ * LỖI KHÔNG LÀM SẬP SERVER: chỉ ghi log + rơi về chế độ cục bộ (dashboard sẽ
+ * hiện banner cảnh báo và admin dùng "Kiểm tra Drive ngay" để xem chi tiết).
+ */
+function init() {
+  const built = buildDriveClient();
+  if (built.error) {
+    drive = null;
+    folderId = null;
+    mode = 'local';
+    console.warn(
+      `[drive] KHONG THE ket noi Google Drive: ${built.error.message}` +
+        (built.error.advice ? ` | ${built.error.advice}` : '')
+    );
+    console.warn('[drive] He thong chay o CHE DO CUC BO ./data (KHONG ben vinh tren Render).');
+    return mode;
+  }
+  drive = built.drive;
+  folderId = built.folderId;
+  mode = 'drive';
+  console.log(`[drive] Da ket noi Google Drive (service account: ${built.clientEmail})`);
+  return mode;
+}
+
 function isDriveMode() {
   return mode === 'drive';
 }
 
 function getMode() {
   return mode;
+}
+
+/** Email service account đang dùng (để admin đối chiếu khi share thư mục). */
+function getServiceAccountEmail() {
+  try {
+    const raw = (process.env.GOOGLE_SERVICE_ACCOUNT_JSON || '').trim();
+    if (!raw) return null;
+    return parseServiceAccount(raw).client_email || null;
+  } catch {
+    return null;
+  }
 }
 
 /* ------------------------------ RETRY HELPER ------------------------------ */
@@ -162,12 +222,164 @@ async function updateFile(fileId, contentString) {
   );
 }
 
+/* ------------------------------ CHẨN ĐOÁN TRỰC TIẾP ------------------------------ */
+
+/**
+ * Kiểm tra sống 5 mức NGAY TRÊN SERVER (admin bấm nút là chạy):
+ *   1. Biến môi trường đủ chưa
+ *   2. Key Service Account đọc được không
+ *   3. ĐỌC thư mục (files.list) — kiểm tra Folder ID + quyền đọc
+ *   4. TẠO file test — kiểm tra quyền GHI (thư mục đã Share Editor chưa)
+ *   5. XÓA file test — dọn dẹp + xác nhận quyền xóa
+ *
+ * Trả về: { ok, mode, clientEmail, folderId, steps: [{ name, ok, detail, advice }], checkedAt }
+ * Nếu mọi mức PASS mà server đang chạy chế độ local (do init lúc boot lỗi) →
+ * tự re-init để "tự lành" không cần restart.
+ */
+async function runDiagnostic() {
+  const steps = [];
+  const checkedAt = new Date().toISOString();
+  let built = null; // Đặt đầy đủ kết nối (null nếu fail ở mức trước đó).
+
+  // --- Mức 1: biến môi trường ---
+  const envOk = Boolean(
+    ((process.env.GOOGLE_SERVICE_ACCOUNT_JSON || '').trim() ||
+      (process.env.GOOGLE_APPLICATION_CREDENTIALS || '').trim()) &&
+      (process.env.GOOGLE_DRIVE_FOLDER_ID || '').trim()
+  );
+  steps.push({
+    name: '1. Biến môi trường (GOOGLE_SERVICE_ACCOUNT_JSON + GOOGLE_DRIVE_FOLDER_ID)',
+    ok: envOk,
+    detail: envOk ? 'Đã khai báo.' : 'Thiếu biến môi trường.',
+    advice: envOk
+      ? null
+      : 'Khai báo 2 biến trên Render Dashboard → Environment, rồi bấm Manual Deploy. Xem README mục 3 Bước 7–8.',
+  });
+  if (!envOk) return finishDiagnostic(false);
+
+  // --- Mức 2: đọc key ---
+  built = buildDriveClient();
+  steps.push({
+    name: '2. Đọc key Service Account',
+    ok: !built.error,
+    detail: built.error
+      ? built.error.message
+      : `Hợp lệ — service account: ${built.clientEmail}`,
+    advice: built.error
+      ? built.error.advice || adviceForError(built.error)
+      : null,
+  });
+  if (built.error) return finishDiagnostic(false);
+
+  const dapi = built.drive;
+  const fid = built.folderId;
+
+  // --- Mức 3: đọc thư mục ---
+  try {
+    await dapi.files.list({
+      q: `name = '${TEST_FILE_NAME}' and '${fid}' in parents and trashed = false`,
+      fields: 'files(id, name)',
+      pageSize: 1,
+    });
+    steps.push({
+      name: '3. ĐỌC thư mục Drive (quyền xem + Folder ID đúng)',
+      ok: true,
+      detail: 'Google xác nhận thư mục tồn tại và service account đọc được.',
+      advice: null,
+    });
+  } catch (err) {
+    err.code = err.code || (err.errors && err.errors[0] && err.errors[0].code);
+    steps.push({
+      name: '3. ĐỌC thư mục Drive (quyền xem + Folder ID đúng)',
+      ok: false,
+      detail: err.message,
+      advice: adviceForError(err),
+    });
+    return finishDiagnostic(false);
+  }
+
+  // --- Mức 4: tạo file test (quyền GHI) ---
+  let testFileId = null;
+  try {
+    testFileId = await dapi.files.create({
+      requestBody: { name: TEST_FILE_NAME, parents: [fid] },
+      media: { mimeType: 'application/json', body: Readable.from(['[]']) },
+      fields: 'id',
+    });
+    steps.push({
+      name: '4. GHI file test lên thư mục (quyền Editor)',
+      ok: true,
+      detail: 'Đã tạo được file __drive_check__.json — thư mục ĐÃ share đúng quyền Editor.',
+      advice: null,
+    });
+  } catch (err) {
+    err.code = err.code || (err.errors && err.errors[0] && err.errors[0].code);
+    steps.push({
+      name: '4. GHI file test lên thư mục (quyền Editor)',
+      ok: false,
+      detail: err.message,
+      advice: adviceForError(err),
+    });
+    return finishDiagnostic(false);
+  }
+
+  // --- Mức 5: xóa file test ---
+  try {
+    await dapi.files.delete({ fileId: testFileId });
+    steps.push({
+      name: '5. Dọn dẹp file test',
+      ok: true,
+      detail: 'Đã xóa file test — kết nối Drive HOÀN TOÀN SẠCH SẼ.',
+      advice: null,
+    });
+  } catch (err) {
+    // Không coi là lỗi nghiêm trọng — file test chỉ rác nhỏ.
+    steps.push({
+      name: '5. Dọn dẹp file test',
+      ok: true,
+      detail: `Không xóa được file test (${err.message}) — không sao, có thể xóa tay trong Drive.`,
+      advice: null,
+    });
+  }
+
+  return finishDiagnostic(true);
+
+  /** Tổng hợp kết quả + tự lành nếu server đang kẹt ở chế độ local. */
+  function finishDiagnostic(allOk) {
+    let healed = false;
+    if (allOk && mode !== 'drive') {
+      init(); // Kết nối thật đang tốt — bật lại chế độ Drive không cần restart.
+      healed = mode === 'drive';
+      if (healed) {
+        // Báo dataStore nạp lại dữ liệu từ Drive (tránh đè mất dữ liệu cũ).
+        try {
+          require('../store/dataStore').reloadFromDrive();
+        } catch { /* bỏ qua — store sẽ tự nạp ở vòng rà sau. */ }
+      }
+    }
+    return {
+      ok: allOk,
+      mode,
+      healed,
+      clientEmail: (built && built.clientEmail) || getServiceAccountEmail(),
+      folderId: (process.env.GOOGLE_DRIVE_FOLDER_ID || '').trim(),
+      steps,
+      checkedAt,
+      message: allOk
+        ? 'Kết nối Google Drive HOẠT ĐỘNG ĐÚNG — hãy bấm "Đồng bộ ngay" để đẩy dữ liệu đang chờ lên Drive.'
+        : 'Phát hiện lỗi — làm theo gợi ý của mức FAIL đầu tiên, sau đó bấm "Kiểm tra Drive ngay" lần nữa.',
+    };
+  }
+}
+
 module.exports = {
   init,
   getMode,
   isDriveMode,
+  getServiceAccountEmail,
   findFileByName,
   createFile,
   downloadFile,
   updateFile,
+  runDiagnostic,
 };

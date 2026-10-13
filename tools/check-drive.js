@@ -182,6 +182,9 @@ function adviceForError(err) {
   if (msg.includes('storagequotaexceeded') || msg.includes('disk quota')) {
     return 'LỖI DUNG LƯỢNG (hiếm gặp). Service Account không có dung lượng riêng. Tự tạo sẵn 3 file rỗng trong thư mục Drive: users.json / exams.json / results.json (mỗi file chỉ cần chữ []) rồi chạy lại — server sẽ dùng đúng các file đó, không tự tạo nữa.';
   }
+  if (msg.includes('err_ossl') || msg.includes('decoder routines') || msg.includes('pem_read') || msg.includes('no start line') || msg.includes('bad decrypt')) {
+    return 'PRIVATE_KEY KHÔNG ĐỌC ĐƯỢC. Chuỗi key bị hỏng khi copy/encode Base64 (thiếu đầu/cuối, đứt dòng, dán thiếu). Tạo lại: node tools/check-drive.js "đường-dẫn-file-key" rồi copy TRỌN VẸN GOOGLE_SERVICE_ACCOUNT_JSON mới (| Set-Clipboard trên Windows, | pbcopy trên macOS).';
+  }
   if (msg.includes('invalid_grant') || msg.includes('invalid_client') || msg.includes('jwt')) {
     return 'KEY KHÔNG HỢP LỆ / ĐÃ THU HỒI. Chuỗi Base64 có thể bị copy thiếu hoặc dư dòng trống. Tạo lại key (README Bước 4) rồi chạy: node tools/check-drive.js "đường-dẫn-file-key" để sinh lại cấu hình. Lưu ý copy Base64 trọn vẹn bằng | Set-Clipboard (Windows) hoặc | pbcopy (macOS).';
   }

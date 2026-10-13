@@ -12,6 +12,7 @@
 
 const express = require('express');
 const dataStore = require('../store/dataStore');
+const driveClient = require('../drive/driveClient');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { hashPassword, verifyPassword, newId } = require('../utils/crypto');
 const { validateExamPayload, RE_CCCD, RE_PHONE, RE_EMAIL } = require('../utils/validate');
@@ -216,13 +217,39 @@ router.post('/sync', async (req, res, next) => {
     for (const key of dataStore.FILES) await dataStore.saveNow(key);
     const sync = dataStore.getSyncInfo();
     const pending = sync.filter((s) => s.pending);
+    if (pending.length === 0) {
+      return res.json({
+        message: 'Mọi dữ liệu đã được đồng bộ an toàn lên Google Drive.',
+        synced: true,
+        sync,
+      });
+    }
+    // Còn pending: kèm nguyên nhân cụ thể của file đầu tiên để admin biết ngay
+    // lỗi gì mà không phải đoán (khuyến nghị chạy chẩn đoán 5 mức).
+    const firstError = pending.find((s) => s.lastError);
+    const errText = firstError ? ` Nguyên nhân gần nhất: ${firstError.lastError}` : '';
     res.json({
-      message: pending.length
-        ? 'Vẫn còn file CHƯA đồng bộ được lên Google Drive — hãy kiểm tra cấu hình Drive (README mục 3, chạy: node tools/check-drive.js).'
-        : 'Mọi dữ liệu đã được đồng bộ an toàn lên Google Drive.',
-      synced: pending.length === 0,
+      message:
+        `Vẫn còn ${pending.length} file CHƯA đồng bộ được lên Google Drive.${errText} ` +
+        'Bấm "Kiểm tra Drive ngay" để chẩn đoán chính xác nguyên nhân và cách sửa.',
+      synced: false,
       sync,
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * CHẨN ĐOÁN GOOGLE DRIVE TRỰC TIẾP TRÊN SERVER (5 mức):
+ *   env → key → đọc thư mục → ghi file test → xóa file test.
+ * Admin bấm nút "Kiểm tra Drive ngay" — không cần chạy tool trên máy local.
+ * Mỗi mức FAIL đều kèm gợi ý sửa cụ thể (nguồn: src/utils/driveAdvice.js).
+ */
+router.post('/drive-check', async (req, res, next) => {
+  try {
+    const result = await driveClient.runDiagnostic();
+    res.json(result);
   } catch (err) {
     next(err);
   }
