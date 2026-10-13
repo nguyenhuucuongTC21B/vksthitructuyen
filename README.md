@@ -38,6 +38,8 @@ online-exam-system/
 ├── package.json
 ├── render.yaml                  # Blueprint deploy Render 1-click
 ├── .env.example                 # Mẫu biến môi trường
+├── tools/
+│   └── check-drive.js           # Công cụ: sinh .env từ file key + kiểm tra kết nối Drive
 ├── src/
 │   ├── config.js                # Nạp .env + cấu hình tập trung
 │   ├── app.js                   # Lắp ráp Express (middleware, static, routes)
@@ -101,20 +103,223 @@ online-exam-system/
 
 ---
 
-## 3. Thiết lập Google Drive API (Service Account)
+## 3. Thiết lập Google Drive API (Service Account) — hướng dẫn từng nút bấm
 
-1. Truy cập [Google Cloud Console](https://console.cloud.google.com/) → tạo Project (VD: `he-thong-thi-truc-tuyen`).
-2. **APIs & Services → Library** → tìm **Google Drive API** → nhấn **Enable**.
-3. **APIs & Services → Credentials → Create Credentials → Service Account** → đặt tên (VD `exam-drive-bot`) → tạo xong vào tab **Keys → Add key → Create new key → JSON** → tải file key về máy.
-4. Tạo **thư mục trên Google Drive** cá nhân (VD `He-thong-thi-truc-tuyen`) → mở thư mục → copy **Folder ID** trên URL:
-   `https://drive.google.com/drive/folders/`**`<FOLDER_ID>`**
-5. Chia sẻ thư mục cho Service Account: nhấn **Share** → nhập email dạng
-   `exam-drive-bot@<project-id>.iam.gserviceaccount.com` (có trong file key, trường `client_email`) → quyền **Editor**.
-6. Mã hóa file key thành Base64 để dán an toàn vào biến môi trường:
-   - **Linux/macOS:** `base64 -w0 service-account.json`
-   - **Windows (PowerShell):** `[Convert]::ToBase64String([IO.File]::ReadAllBytes("service-account.json"))`
+> Hướng dẫn dưới đây mô tả **từng nút bấm** trên giao diện Google Cloud Console và Google Drive
+> (cập nhật 2025). Làm đúng thứ tự 8 bước, mỗi bước chỉ 1–3 phút. Mỗi bước có dòng
+> "✅ Đối chiếu" để bạn biết đã làm thành công. Cuối mục là bảng xử lý 6 lỗi thường gặp.
 
-> ⚠️ File key là mật khẩu cấp hệ thống — không commit lên Git, không chia sẻ công khai.
+### Bước 1 — Tạo Project trên Google Cloud
+
+1. Đăng nhập Google bằng **tài khoản cá nhân** (`@gmail.com`) rồi mở: **https://console.cloud.google.com/**
+2. Lần đầu vào, Google hỏi đồng ý điều khoản dịch vụ → tích chọn và nhấn **Agree / Continue**
+   (nếu được hỏi quốc gia, chọn Vietnam).
+3. Nhìn **thanh trên cùng** (ngay dưới chữ Google Cloud): có ô chọn project — có thể đang hiện
+   chữ **"Select a project"** → nhấn vào ô đó.
+4. Cửa sổ bật lên hiện danh sách project → nhấn nút **New Project** ở góc trên bên phải.
+5. Điền form "New Project":
+   - **Project name:** `he-thong-thi-truc-tuyen` (nên dùng tên không dấu, không khoảng trắng);
+   - **Organization/Location:** giữ nguyên mặc định ("No organization");
+   - **Không cần** thẻ tín dụng / Billing — Google Drive API dùng được trong gói miễn phí.
+6. Nhấn **Create** → chờ 20–60 giây. Khi có thông báo (hình chiếc chuông góc trên phải) → nhấn **Select Project**.
+
+✅ **Đối chiếu:** thanh trên cùng hiện đúng tên project `he-thong-thi-truc-tuyen`.
+
+### Bước 2 — Bật (Enable) Google Drive API
+
+1. Mở menu **☰** (góc trên bên trái) → **APIs & Services** → **Library**.
+   (Hoặc truy cập thẳng: https://console.cloud.google.com/apis/library )
+2. Trong ô tìm kiếm gõ `google drive` → chọn **Google Drive API**
+   (dòng đầu tiên, logo hình tam giác vàng–xanh lục–hồng).
+3. Nhấn nút xanh **Enable** và chờ vài giây.
+
+✅ **Đối chiếu:** trang API hiện nút **Manage** và chữ "API enabled".
+
+⚠️ **Bỏ qua bước này là nguyên nhân số 1** gây lỗi `403 SERVICE_DISABLED` khi chạy server.
+
+### Bước 3 — Tạo Service Account
+
+1. Menu ☰ → **APIs & Services** → **Credentials**. (https://console.cloud.google.com/apis/credentials )
+2. Nhấn **+ Create Credentials** (hàng nút trên cùng) → chọn **Service account**.
+3. Form "Create service account" gồm 3 màn:
+   - **Service account details**:
+     - *Service account name:* `exam-drive-bot`
+     - *Service account ID:* Google tự điền — giữ nguyên
+     - *Description:* `Bot luu du lieu thi` (có thể bỏ trống)
+     → nhấn **Create and Continue**.
+   - **Grant this service account access to project (optional):** không cần chọn gì → nhấn **Continue**.
+   - **Grant users access to this service account (optional):** không cần chọn gì → nhấn **Done**.
+4. Quay lại trang **Credentials**, mục **Service Accounts** hiện 1 dòng dạng:
+   `exam-drive-bot@he-thong-thi-truc-tuyen.iam.gserviceaccount.com`
+
+✅ **Đối chiếu:** thấy dòng email trên trong trang Credentials.
+
+### Bước 4 — Tạo file key JSON
+
+1. Trong trang **Credentials**, nhấn vào **email** của service account vừa tạo (dòng ở Bước 3).
+2. Chuyển sang tab **Keys** (ngang hàng với Details / Permissions...).
+3. Nhấn **Add key** → **Create new key**.
+4. Chọn **JSON** → nhấn **Create** → trình duyệt **tự động tải về** một file `.json`
+   (tên dạng `he-thong-thi-truc-tuyen-1a2b3c4d5e6f.json`) và Google hiện cảnh báo vàng
+   "Private key saved to your computer" → chỉ cần nhấn **Close**.
+5. Chuyển file vừa tải tới nơi an toàn (ví dụ đặt cạnh thư mục dự án) và **đổi tên thành
+   `service-account.json`** cho dễ nhớ:
+   - Windows thường lưu tại: `C:\Users\<TênBạn>\Downloads\`
+   - macOS / Linux: `~/Downloads/`
+
+> ⚠️ File key là **mật khẩu cấp hệ thống** — không commit lên Git, không chia sẻ công khai.
+> Nếu nghi lộ key: vào tab Keys → xóa key cũ → tạo key mới (Bước 4 làm lại), key cũ tự vô hiệu.
+
+### Bước 5 — Tìm email Service Account trong file key (trường `client_email`)
+
+File key là file văn bản thuần, mở bằng trình soạn thảo bất kỳ:
+
+| Hệ điều hành | Cách mở |
+|---|---|
+| Windows | Chuột phải file → **Open with → Notepad**. Hoặc mở CMD gõ: `notepad "%USERPROFILE%\Downloads\service-account.json"` |
+| macOS | Terminal gõ: `open -a TextEdit ~/Downloads/service-account.json` |
+| Linux | Terminal gõ: `nano ~/Downloads/service-account.json` (hoặc gedit) |
+
+Nội dung file (rút gọn) trông như sau:
+
+```json
+{
+  "type": "service_account",
+  "project_id": "he-thong-thi-truc-tuyen",
+  "private_key_id": "9f8e7d6c5b4a3210fedcba9876543210abcdef12",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC...\n-----END PRIVATE KEY-----\n",
+  "client_email": "exam-drive-bot@he-thong-thi-truc-tuyen.iam.gserviceaccount.com",
+  "client_id": "112233445566778899000",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth"
+}
+```
+
+👉 Dòng **`client_email`** (thứ 5) chính là **email của bot**. Copy **toàn bộ giá trị giữa hai dấu
+ngoặc kép** — ví dụ trên là `exam-drive-bot@he-thong-thi-truc-tuyen.iam.gserviceaccount.com`.
+Email có quy tắc nhận biết: `<tên-bot>@<project-id>.iam.gserviceaccount.com`.
+
+> 💡 Không muốn mở file tay? Chạy luôn công cụ của dự án (Bước 8) — nó tự in email này ra màn hình:
+> `node tools/check-drive.js "đường-dẫn-đến-service-account.json"`
+
+### Bước 6 — Tạo thư mục Drive, lấy Folder ID và SHARE cho Service Account
+
+Đây là bước quan trọng nhất — làm chậm từng ý nhỏ:
+
+**6a. Tạo thư mục**
+
+1. Mở **https://drive.google.com/** bằng chính tài khoản Google ở Bước 1.
+2. Góc trên trái nhấn **+ New** (Mới) → **New folder** (Thư mục mới) → đặt tên
+   `He-thong-thi-truc-tuyen` → **Create**.
+3. **Nhấp đúp** vào thư mục để mở bên trong.
+
+**6b. Lấy Folder ID**
+
+- Khi đã ở trong thư mục, nhìn **thanh địa chỉ trình duyệt**:
+  `https://drive.google.com/drive/folders/1AbCdEf_GhIjKlMnOpQrStUvWxYz123456`
+- **Folder ID = toàn bộ đoạn sau chữ `/folders/`** → ví dụ trên là `1AbCdEf_GhIjKlMnOpQrStUvWxYz123456`
+- Copy riêng đoạn đó (KHÔNG kèm `https://drive.google.com/drive/folders/`, KHÔNG có khoảng trắng đầu/cuối).
+
+**6c. Chia sẻ (Share) thư mục cho Service Account — bước "Share" bạn cần làm**
+
+1. Đang **ở bên trong thư mục** (đã nhấp đúp), nhìn **góc trên bên phải**: có nút **Share**
+   (biểu tượng hình người). Nhấn vào nút đó.
+   - *Không thấy chữ "Share"?* Giao diện mới rút gọn thành **biểu tượng hình người có dấu ✚**
+     ngay cạnh khung tên thư mục — di chuột vào sẽ hiện tooltip "Share".
+   - *Cách chắc chắn đúng thứ 2:* quay ra danh sách Drive, **chuột phải** vào tên thư mục →
+     **Share** → **Share**.
+2. Cửa sổ **"Share 'He-thong-thi-truc-tuyen'"** hiện ra:
+   - Gõ email Service Account (lấy ở Bước 5) vào ô **"Add people, groups and calendar events"**:
+     `exam-drive-bot@he-thong-thi-truc-tuyen.iam.gserviceaccount.com`
+   - Email bot **không có gợi ý autocomplete** (khác email người thường) — chuyện bình thường.
+     Gõ đủ rồi **nhấn Enter**: email chuyển thành một "thẻ" (chip) nằm trong ô nhập.
+   - **Quan trọng:** cạnh ô nhập có menu thả xuống chọn quyền — mặc định **Viewer** →
+     nhấn đổi thành **Editor**. (Để Viewer thì bot chỉ đọc được, server sẽ KHÔNG ghi được file.)
+3. Nhấn nút **Send** (một số máy hiện chữ **Share**) ở góc dưới phải cửa sổ.
+   ("Notify people" tích hay bỏ đều được — bot không có hộp thư.)
+4. Kiểm tra lại: mở lại cửa sổ Share → mục **People with access** phải xuất hiện dòng
+   `exam-drive-bot@...` kèm nhãn **Editor**.
+
+✅ **Đối chiếu:** email bot hiện trong "People with access" với quyền Editor.
+
+> ⚠️ Tài khoản Google **của tổ chức** (công ty/trường, đuôi khác @gmail.com) có thể bị chính sách
+> chặn chia sẻ ra ngoài tổ chức. Nếu không share được hoặc server vẫn bị từ chối quyền:
+> tạo thư mục bằng **tài khoản @gmail.com cá nhân** — chắc chắn hoạt động.
+
+### Bước 7 — Mã hóa file key thành Base64
+
+Base64 chỉ là cách biến file JSON thành **một chuỗi ký tự dài duy nhất** để dán được vào biến môi
+trường (biến môi trường khó chứa nguyên một file JSON nhiều dòng):
+
+**Windows (PowerShell):**
+
+1. Nhấn phím Windows, gõ `powershell`, mở **Windows PowerShell**.
+2. Chạy lệnh (sửa đường dẫn cho đúng nơi bạn để file — nhớ giữ ngoặc kép):
+   ```powershell
+   [Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\Users\Ten\Downloads\service-account.json")) | Set-Clipboard
+   ```
+   Chuỗi Base64 đã nằm trong clipboard — dán thẳng vào Render / file `.env`.
+   Muốn in ra màn hình xem trước: bỏ `| Set-Clipboard`.
+
+**macOS:**
+
+```bash
+base64 -i ~/Downloads/service-account.json | pbcopy
+```
+
+**Linux:**
+
+```bash
+base64 -w0 ~/Downloads/service-account.json
+```
+
+Chuỗi có thể dài **2.000+ ký tự nằm trên MỘT dòng** — hoàn toàn bình thường.
+
+⚠️ **Ba lỗi hay gặp nhất ở bước này:**
+- **Copy thiếu / đứt dòng** → server báo lỗi `JSON.parse` / `Unexpected token`. Luôn dùng
+  `| Set-Clipboard` (Windows) hoặc `| pbcopy` (macOS) để copy trọn vẹn; khi dán vào `.env`,
+  chuỗi phải nằm trên đúng 1 dòng.
+- **Dùng nhầm `certutil -encode` trên CMD** — lệnh đó chèn thêm dòng `-----BEGIN CERTIFICATE-----`
+  làm hỏng dữ liệu → **không dùng**.
+- **Dán nhầm ô**: Base64 chỉ đi vào `GOOGLE_SERVICE_ACCOUNT_JSON`; Folder ID (Bước 6b) đi vào
+  `GOOGLE_DRIVE_FOLDER_ID` — hai biến tách biệt, đừng hoán đổi.
+
+### Bước 8 — Kiểm tra tự động (khuyên dùng trước khi deploy)
+
+```bash
+cd online-exam-system
+npm install
+
+# Lần 1: đọc file key -> in email Service Account -> sinh .env -> mã hóa Base64
+node tools/check-drive.js "đường-dẫn-đến-service-account.json"
+
+# Sau khi điền GOOGLE_DRIVE_FOLDER_ID vào .env — lần 2: test kết nối THẬT tới Drive
+node tools/check-drive.js
+```
+
+Lần chạy thứ 2 kiểm tra tuần tự 5 mức — script in rõ bước nào đạt (✓), bước nào lỗi (✗) kèm
+**cách sửa đúng theo mã lỗi Google trả về**:
+
+| Mức | Kiểm tra gì | Thường lỗi khi |
+|---|---|---|
+| 1/5 | Đọc key, đủ `client_email` + `private_key` | Base64 / JSON hỏng |
+| 2/5 | Nạp thư viện googleapis | Chưa chạy `npm install` |
+| 3/5 | Liệt kê nội dung thư mục (quyền ĐỌC) | Chưa bật Drive API / sai Folder ID / chưa Share |
+| 4/5 | Tạo + ghi đè file test (quyền GHI) | Share rồi nhưng để quyền Viewer |
+| 5/5 | Xóa file test (dọn dẹp) | — |
+
+Khi cả 5 mức đều ✓ → cấu hình đã đúng 100%. Copy 3 biến từ `.env`
+(`SESSION_SECRET`, `GOOGLE_SERVICE_ACCOUNT_JSON`, `GOOGLE_DRIVE_FOLDER_ID`) sang Render là xong.
+
+### Bảng xử lý 6 lỗi thường gặp
+
+| Thông báo lỗi (log server / script) | Nguyên nhân | Cách xử lý |
+|---|---|---|
+| `403 SERVICE_DISABLED` / "Google Drive API has not been used..." | Chưa bật Drive API | Làm lại Bước 2, chờ 1–2 phút rồi chạy lại |
+| `403 The caller does not have permission` | Chưa Share thư mục, hoặc share quyền Viewer; hoặc tài khoản tổ chức chặn chia sẻ ngoài | Làm lại 6c với quyền **Editor**; nếu là tài khoản tổ chức → chuyển sang @gmail.com cá nhân |
+| `404 File not found: <id>` | `GOOGLE_DRIVE_FOLDER_ID` sai (copy cả URL, dư khoảng trắng, thư mục đã xóa) | Lấy lại ở Bước 6b — chỉ lấy đoạn sau `/folders/` |
+| `401 invalid_grant` / `invalid_client` / lỗi JWT | Base64 hỏng (copy thiếu, thừa dòng trống) hoặc key đã bị xóa/thu hồi | Tạo lại key (Bước 4) + mã hóa lại (Bước 7, dùng Set-Clipboard / pbcopy) |
+| `403 storageQuotaExceeded` (hiếm gặp) | Service Account không có dung lượng riêng | Tự tạo sẵn 3 file rỗng `users.json`, `exams.json`, `results.json` trong thư mục Drive (mỗi file chỉ chứa chữ `[]`) — server sẽ dùng đúng các file đó |
+| Log in `CHE DO CUC BO` (local mode) | Thiếu 1 trong 2 biến Google | Kiểm tra `.env` (local) hoặc mục Environment (Render) đã khai báo đủ 2 biến chưa |
 
 ---
 
@@ -123,10 +328,20 @@ online-exam-system/
 | Biến | Bắt buộc | Ý nghĩa |
 |------|----------|---------|
 | `PORT` | — (Render tự set) | Cổng HTTP. Mặc định 3000. |
-| `SESSION_SECRET` | ✅ | Khóa ký token phiên. Sinh: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` |
-| `GOOGLE_SERVICE_ACCOUNT_JSON` | ✅ (prod) | File key Service Account dạng **Base64** (khuyên dùng) hoặc JSON thô 1 dòng. |
-| `GOOGLE_DRIVE_FOLDER_ID` | ✅ (prod) | ID thư mục Drive lưu 3 file JSON (xem bước 4 ở trên). |
+| `SESSION_SECRET` | ✅ | Khóa ký token phiên. Script `check-drive.js` tự sinh; hoặc tự tạo: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | ✅ (prod) | File key Service Account dạng **Base64** (khuyên dùng) hoặc JSON thô 1 dòng — sinh ở mục 3, Bước 7. |
+| `GOOGLE_DRIVE_FOLDER_ID` | ✅ (prod) | ID thư mục Drive lưu 3 file JSON — lấy ở mục 3, Bước 6b. |
 | `ADMIN_CCCDS` | tùy chọn | Danh sách CCCD được cấp quyền Admin khi đăng ký, phân cách bởi dấu phẩy. |
+
+Ví dụ file `.env` hoàn chỉnh (giá trị minh họa):
+
+```dotenv
+PORT=3000
+SESSION_SECRET=7f3a9c1e5d8b... (chuỗi hex 96 ký tự, script tự sinh)
+GOOGLE_SERVICE_ACCOUNT_JSON=eyJ0eXBlIjoic2VydmljZV9hY2NvdW50Iiwi... (chuỗi Base64 1 dòng dài)
+GOOGLE_DRIVE_FOLDER_ID=1AbCdEf_GhIjKlMnOpQrStUvWxYz123456
+ADMIN_CCCDS=012345678901
+```
 
 > 💡 **Chế độ dev:** nếu bỏ trống 2 biến Google, hệ thống chạy **chế độ cục bộ** — dữ liệu ghi vào `./data/`.
 > Tiện để phát triển giao diện mà chưa cần Drive.
@@ -138,7 +353,13 @@ online-exam-system/
 ```bash
 cd online-exam-system
 npm install
+
+# (Khuyên dùng) Sinh .env từ file key + kiểm tra Drive — xem mục 3, Bước 8:
+node tools/check-drive.js "đường-dẫn-đến-service-account.json"
+
+# (Chỉ khi KHÔNG dùng script trên) tạo .env thủ công:
 cp .env.example .env        # điền SESSION_SECRET (+ biến Google nếu muốn)
+
 npm start                   # hoặc: npm run dev (tự restart khi sửa code)
 ```
 
@@ -157,9 +378,9 @@ Mở `http://localhost:3000`:
 
 1. Tạo repo GitHub và đẩy toàn bộ thư mục dự án lên (file `render.yaml` đã cấu hình sẵn).
 2. Trên [Render Dashboard](https://dashboard.render.com/) → **New + → Blueprint** → chọn repository → **Apply**.
-3. Sau khi service được tạo, vào **Environment** và bổ sung 2 biến `sync: false`:
-   - `GOOGLE_SERVICE_ACCOUNT_JSON` = chuỗi Base64 ở mục 3;
-   - `GOOGLE_DRIVE_FOLDER_ID` = Folder ID của thư mục Drive;
+3. Sau khi service được tạo, vào **Environment** và bổ sung các biến `sync: false`:
+   - `GOOGLE_SERVICE_ACCOUNT_JSON` = chuỗi Base64 (mục 3, Bước 7);
+   - `GOOGLE_DRIVE_FOLDER_ID` = Folder ID của thư mục Drive (mục 3, Bước 6b);
    - (tùy chọn) `ADMIN_CCCDS`.
 4. **Save → Manual Deploy** để khởi động lại với biến mới. Xong!
 
@@ -174,13 +395,38 @@ Mở `http://localhost:3000`:
 
 - Free tier **sleep sau 15 phút không có truy cập**; lần truy cập đầu sẽ chậm 20–40s (cold start) do server
   tải dữ liệu từ Drive về RAM. Có thể dùng cron-pinger miễn phí (VD UptimeRobot) ping `/api/health` mỗi 5 phút.
+- **ĐÂY LÀ NGUYÊN NHÂN ĐỀ THI "TỰ BIẾN MẤT"**: khi Render ngủ, toàn bộ RAM + đĩa tạm bị XÓA SẠCH.
+  Khi thức dậy, server chỉ có dữ liệu nằm trên Google Drive. Nếu Drive chưa cấu hình đúng (sync lỗi),
+  MỌI đề thi / tài khoản / điểm đã tạo sau lần thức gần nhất sẽ mất hết. Cách phòng tránh:
+  1. Hoàn thành mục 3 (8 bước) **trước khi** ra đề thật — mở trang `/admin.html`: banner màu đỏ nghĩa là
+     chưa có Drive, màu vàng nghĩa là chưa sync xong, màu xanh là dữ liệu đã an toàn trên Drive.
+  2. Bấm nút **"⟳ Đồng bộ ngay"** trên banner để ghi Drive tức thì và xác nhận kết quả.
+  3. Dùng UptimeRobot ping `/api/health` mỗi 5 phút để Render không ngủ trong giờ tổ chức thi.
 - Bản ghi "lượt thi đang làm" nằm trong RAM: nếu server restart giữa chừng, thí sinh vào lại đề sẽ được
   cấp lại toàn bộ thời gian (dữ liệu kết quả đã nộp thì **không bao giờ mất** — đã sync Drive ngay khi nộp).
 - Log server hiển thị rõ `[store] Da dong bo xxx.json len Google Drive` sau mỗi lần lưu — dùng để giám sát sync.
+- Đặt `SESSION_SECRET` là một chuỗi cố định (không để trống): nếu bỏ trống, mỗi lần Render ngủ dậy
+  token đăng nhập cũ bị vô hiệu — mọi người phải đăng nhập lại (dữ liệu thì không mất nếu Drive OK).
 
 ---
 
 ## 7. Câu hỏi nhanh
+
+**Ra 1 đề nhưng danh sách hiện 3 đề giống nhau?** Do bấm nút "Lưu đề thi" nhiều lần khi Render đang
+khởi động lạnh (request gửi đi phải chờ 20–60s, tưởng là không ăn nên bấm tiếp). Bản mới đã: (1) khóa nút
+và hiện "Đang lưu..." khi đang gửi; (2) server từ chối tạo đề trùng tên + hạng mục trong vòng 2 phút
+(lỗi 409 với lời giải thích). Các đề trùng cũ: vào "Đề thi → Xóa" từng đề thừa.
+
+**Không xem được nội dung / không sửa được đề thi?** Bản cũ thiếu chức năng này. Bản mới có đủ:
+card đề thi có 3 nút **Xem đề** (xem toàn bộ câu hỏi, đáp án đúng tô xanh) — **Sửa** (mở lại form ra đề
+điền sẵn nội dung, sửa xong bấm "Cập nhật đề thi") — **Xóa**.
+
+**Đề thi tạo xong ~15 phút thì biến mất?** Render Free ngủ sau 15 phút không có truy cập — khi ngủ,
+mọi dữ liệu chưa ghi lên Google Drive bị xóa sạch. Nghĩa là Google Drive của bạn đang KHÔNG sync được.
+Kiểm tra: mở `/admin.html` xem banner đầu trang (đỏ = chưa cấu hình Drive, vàng = sync đang lỗi,
+xanh = đã an toàn); hoặc mở `/api/health` xem `mode` và `pending`. Sửa xong cấu hình Drive (mục 3)
+theo dõi log Render thấy `[store] Da dong bo ...` rồi mới ra đề thật. Xem thêm "Lưu ý khi vận hành
+trên Render Free" ở trên.
 
 **Đổi nội dung trang chủ / tên cuộc thi / hạn thi?** Sửa trực tiếp `public/index.html`
 và hằng số `DEADLINE` trong `public/assets/js/home.js`.
@@ -188,8 +434,17 @@ và hằng số `DEADLINE` trong `public/assets/js/home.js`.
 **Muốn nhiều Admin?** Đăng ký tài khoản rồi Admin hiện tại vào "Người dùng → Sửa → Quyền hạn → Admin",
 hoặc khai báo `ADMIN_CCCDS` trước khi người đó đăng ký.
 
-**Bị lỗi 403 khi sync Drive?** Kiểm tra: (1) đã bật Google Drive API; (2) đã Share thư mục cho
-email Service Account với quyền Editor; (3) `GOOGLE_DRIVE_FOLDER_ID` đúng ID thư mục (không phải URL đầy đủ).
+**Đăng ký / nộp bài báo "Lỗi máy chủ. Vui lòng thử lại sau." (trên Render)?** Gần như chắc chắn do
+Google Drive **chưa cấu hình xong** — server không ghi được file JSON lên Drive. Cách kiểm tra nhanh:
+mở `https://<ten-app>.onrender.com/api/health` → nếu `"mode":"drive"` mà `"pending":true` là dữ liệu
+đang chờ sync (bị kẹt). Từ phiên bản mới, đăng ký/nộp bài **không còn bị chặn** khi Drive lỗi — dữ liệu
+giữ an toàn trong RAM + bộ nhớ cục bộ và **tự thử lại mỗi 30 giây**, kèm cảnh báo trong thông báo thành
+công; nhưng bạn vẫn phải hoàn thành mục 3 (8 bước) rồi **Manual Deploy** để dữ liệu được lưu vĩnh viễn.
+
+**Bị lỗi khi kết nối Drive / chưa làm được bước Share?** Xem mục 3: đã có **hướng dẫn từng nút bấm
+(8 bước)** kèm dấu hiệu đối chiếu, bảng xử lý 6 lỗi thường gặp, và script kiểm tra tự động —
+chạy `node tools/check-drive.js` sẽ chỉ ra chính xác bạn sai chỗ nào (chưa bật API / sai Folder ID /
+chưa Share / sai quyền / key hỏng).
 
 **Quota Google Drive?** Service Account được 750 GB/ngày upload — với file JSON vài chục KB,
 hệ thống hàng nghìn thí sinh vẫn dư sức.

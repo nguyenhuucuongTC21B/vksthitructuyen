@@ -64,6 +64,9 @@
     <!-- ============ NỘI DUNG ============ -->
     <main class="min-w-0">
 
+      <!-- ========== BANNER TRẠNG THÁI ĐỒNG BỘ GOOGLE DRIVE ========== -->
+      <div id="sync-banner" class="hidden mb-5 rounded-2xl border p-4 flex flex-wrap items-center gap-3"></div>
+
       <!-- ========== TỔNG QUAN ========== -->
       <section id="section-overview" class="admin-section">
         <h1 class="font-serif text-2xl font-bold text-slate-900">Tổng quan hệ thống</h1>
@@ -213,7 +216,7 @@
   <div id="modal-exam" class="hidden fixed inset-0 z-50 bg-black/50 flex items-start sm:items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-soft w-full max-w-3xl p-6 sm:my-6 max-h-none sm:max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between sticky top-0 bg-white pb-3">
-        <h3 class="font-serif text-lg font-bold text-slate-900">Ra đề thi mới</h3>
+        <h3 id="modal-exam-title" class="font-serif text-lg font-bold text-slate-900">Ra đề thi mới</h3>
         <button onclick="closeModal('modal-exam')" class="text-slate-400 hover:text-slate-600 text-xl leading-none">✕</button>
       </div>
       <form id="form-exam" class="mt-3 space-y-4" novalidate>
@@ -247,7 +250,7 @@
         <p id="me-error" class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></p>
         <div class="flex gap-3 sticky bottom-0 bg-white pt-3 pb-1">
           <button type="button" onclick="closeModal('modal-exam')" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50">Hủy</button>
-          <button type="submit" class="flex-1 px-4 py-2.5 rounded-xl bg-flag-600 hover:bg-flag-700 text-white font-bold text-sm">Lưu đề thi</button>
+          <button id="me-submit" type="submit" class="flex-1 px-4 py-2.5 rounded-xl bg-flag-600 hover:bg-flag-700 text-white font-bold text-sm">Lưu đề thi</button>
         </div>
       </form>
     </div>
@@ -282,6 +285,25 @@
           <button type="submit" class="flex-1 px-4 py-2.5 rounded-xl bg-flag-600 hover:bg-flag-700 text-white font-bold text-sm">Lưu kết quả</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: XEM CHI TIẾT ĐỀ THI ============ -->
+  <div id="modal-exam-view" class="hidden fixed inset-0 z-50 bg-black/50 flex items-start sm:items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-soft w-full max-w-3xl p-6 sm:my-6 max-h-none sm:max-h-[92vh] overflow-y-auto">
+      <div class="flex items-start justify-between sticky top-0 bg-white pb-3">
+        <div class="min-w-0">
+          <h3 id="mv-title" class="font-serif text-lg font-bold text-slate-900 leading-snug"></h3>
+          <p id="mv-meta" class="text-xs text-slate-400 mt-1"></p>
+        </div>
+        <button onclick="closeModal('modal-exam-view')" class="text-slate-400 hover:text-slate-600 text-xl leading-none shrink-0 ml-3">✕</button>
+      </div>
+      <p id="mv-desc" class="text-sm text-slate-600 mt-2"></p>
+      <div id="mv-questions" class="mt-4 space-y-4"></div>
+      <div class="flex gap-3 sticky bottom-0 bg-white pt-3 pb-1">
+        <button type="button" onclick="closeModal('modal-exam-view')" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50">Đóng</button>
+        <button id="mv-edit" type="button" class="flex-1 px-4 py-2.5 rounded-xl bg-flag-600 hover:bg-flag-700 text-white font-bold text-sm">Chỉnh sửa đề này</button>
+      </div>
     </div>
   </div>
 

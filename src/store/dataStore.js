@@ -46,6 +46,8 @@ const lastSyncedAt = {};
 let safetyTimer = null;   // Vòng rà an toàn 30s.
 let debounceTimer = null; // Bộ hẹn gộp thay đổi 1.2s.
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 /* ------------------------------ KHỞI TẠO ------------------------------ */
 
 /** Nạp dữ liệu từ Google Drive về RAM khi hệ thống khởi động. */
@@ -121,17 +123,30 @@ function assertKey(key) {
 function save(key) {
   assertKey(key);
   pendingSaves.add(key);
-  if (!flushTimer) flushTimer = setTimeout(() => flushAll(), DEBOUNCE_MS);
+  if (!debounceTimer) {
+    debounceTimer = setTimeout(() => {
+      debounceTimer = null;
+      flushAll();
+    }, DEBOUNCE_MS);
+  }
 }
 
 /**
  * Đánh dấu + đồng bộ NGAY (await được nếu cần chắc chắn).
  * Dùng cho các thao tác trọng yếu: nộp bài thi, đăng ký tài khoản...
+ *
+ * KHÔNG BAO GIỜ ném lỗi khi Google Drive tạm lỗi / cấu hình sai: dữ liệu vẫn
+ * được GIỮ an toàn trong RAM + mirror cục bộ ./data, cờ pending giữ lại để
+ * vòng rà 30s tự thử lại. Hàm trả về { synced } để caller biết lần này có
+ * ghi lên Drive thành công hay không (hiện cảnh báo cho người dùng khi cần).
  */
 async function saveNow(key) {
   assertKey(key);
   pendingSaves.add(key);
+  // Nếu một vòng upload khác đang chạy: đợi nó xong rồi tự chạy vòng của mình.
+  while (savingNow.has(key)) await sleep(50);
   await flushKey(key);
+  return { synced: !pendingSaves.has(key) };
 }
 
 function flushAll() {
@@ -145,9 +160,11 @@ function flushAll() {
 
 /**
  * Vòng lặp upload một file (có Mutex — tuần tự theo file):
- *  - Chụp ảnh nhanh dữ liệu MỚI NHẤT tại thời điểm upload.
- *  - Nếu trong lúc upload lại có thay đổi mới → lặp lại lần nữa (coalescing).
- *  - Lỗi tạm thời → giữ pending, vòng rà 30s sẽ tự thử lại.
+ *  - Ghi mirror cục bộ TRƯỚC (dữ liệu an toàn trên đĩa ngay cả khi Drive lỗi).
+ *  - Chỉ xóa cờ pending khi upload Drive THÀNH CÔNG; thất bại → giữ pending,
+ *    vòng rà 30s tự thử lại, log lỗi rõ nguyên nhân — KHÔNG ném lỗi ra route.
+ *  - Nếu trong lúc upload lại có thay đổi mới → lặp lại lần nữa (coalescing)
+ *    với dữ liệu MỚI NHẤT — không bao giờ mất dữ liệu.
  */
 async function flushKey(key) {
   if (savingNow.has(key)) return; // Vòng upload trước đang chạy — nó sẽ nhặt pending còn lại.
@@ -155,20 +172,34 @@ async function flushKey(key) {
   const release = await globalMutex.acquire(`persist:${key}`);
   try {
     while (pendingSaves.has(key)) {
-      pendingSaves.delete(key);
       const snapshot = JSON.stringify(store[key].data, null, 2);
+      await mirrorLocal(key); // An toàn cục bộ trước — rẻ và đáng tin cậy.
 
-      if (driveClient.isDriveMode()) {
+      if (!driveClient.isDriveMode()) {
+        pendingSaves.delete(key); // Chế độ local: mirror là đủ.
+        continue;
+      }
+
+      try {
         if (store[key].fileId) {
           await driveClient.updateFile(store[key].fileId, snapshot);
         } else {
-          // File chưa có trên Drive (hiếm) → tạo mới rồi nhớ fileId.
+          // File chưa có trên Drive (lần đầu) → tạo mới rồi nhớ fileId.
           store[key].fileId = await driveClient.createFile(`${key}.json`, snapshot);
         }
+        pendingSaves.delete(key); // Chỉ xóa khi upload THÀNH CÔNG.
         lastSyncedAt[key] = new Date().toISOString();
         console.log(`[store] Da dong bo ${key}.json len Google Drive (${store[key].data.length} ban ghi)`);
+      } catch (err) {
+        // Giữ pending — vòng rà 30s sẽ tự thử lại. Log lớn để quản trị viên nhận ra.
+        console.error('!'.repeat(70));
+        console.error(`[store] KHONG dong bo duoc ${key}.json len Google Drive: ${err.message}`);
+        console.error('[store] Du lieu van AN TOAN trong RAM + mirror cuc bo ./data — he thong se TU THU LAI moi 30 giay.');
+        console.error('[store] Neu loi lap lai: kiem tra cau hinh Google Drive (README muc 3 — 8 buoc)');
+        console.error('[store] hoac chay: node tools/check-drive.js  de biet chinh xac loi o dau.');
+        console.error('!'.repeat(70));
+        break; // Thoát vòng while — pending được giữ lại để thử lại sau.
       }
-      await mirrorLocal(key);
     }
   } finally {
     savingNow.delete(key);

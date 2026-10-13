@@ -4,8 +4,9 @@
  *
  * Chức năng:
  *  - Quản lý người dùng: xem, sửa thông tin, xóa, cấp quyền, đặt lại mật khẩu.
- *  - Ra đề thi mới, xóa đề.
+ *  - Ra đề thi mới, XEM CHI TIẾT đề (kèm đáp án), CHỈNH SỬA đề, xóa đề.
  *  - Xem toàn bộ kết quả (theo từng hạng mục), can thiệp chỉnh sửa / xóa kết quả.
+ *  - Đồng bộ dữ liệu lên Google Drive NGAY (POST /sync) khi cần chắc chắn.
  */
 'use strict';
 
@@ -17,6 +18,16 @@ const { validateExamPayload, RE_CCCD, RE_PHONE, RE_EMAIL } = require('../utils/v
 
 const router = express.Router();
 router.use(requireAuth, requireAdmin);
+
+/**
+ * Hậu tố cảnh báo thêm vào message khi dữ liệu CHƯA ghi được lên Drive.
+ * (sync = kết quả trả về của dataStore.saveNow — { synced: boolean })
+ */
+function syncSuffix(sync) {
+  return sync && sync.synced
+    ? ''
+    : ' ⚠ Dữ liệu CHƯA đồng bộ lên Google Drive — hệ thống sẽ tự thử lại mỗi 30 giây.';
+}
 
 /* ============================== QUẢN LÝ NGƯỜI DÙNG ============================== */
 
@@ -72,9 +83,9 @@ router.put('/users/:cccd', async (req, res, next) => {
 
     if (errors.length) return res.status(400).json({ message: errors.join(' ') });
 
-    await dataStore.saveNow('users');
+    const sync = await dataStore.saveNow('users');
     const { passwordHash, ...safe } = user;
-    res.json({ message: 'Đã cập nhật thông tin người dùng.', user: safe });
+    res.json({ message: `Đã cập nhật thông tin người dùng.${syncSuffix(sync)}`, synced: sync.synced, user: safe });
   } catch (err) {
     next(err);
   }
@@ -90,19 +101,40 @@ router.delete('/users/:cccd', async (req, res, next) => {
     const idx = users.findIndex((u) => u.cccd === req.params.cccd);
     if (idx === -1) return res.status(404).json({ message: 'Không tìm thấy người dùng.' });
     users.splice(idx, 1);
-    await dataStore.saveNow('users');
-    res.json({ message: 'Đã xóa người dùng khỏi hệ thống.' });
+    const sync = await dataStore.saveNow('users');
+    res.json({ message: `Đã xóa người dùng khỏi hệ thống.${syncSuffix(sync)}`, synced: sync.synced });
   } catch (err) {
     next(err);
   }
 });
 
-/* ============================== RA ĐỀ THI MỚI ============================== */
+/* ============================== RA ĐỀ & QUẢN LÝ ĐỀ THI ============================== */
 
+/** Tạo đề thi mới. Có cơ chế chống tạo trùng do bấm nút Lưu nhiều lần. */
 router.post('/exams', async (req, res, next) => {
   try {
     const check = validateExamPayload(req.body);
     if (!check.ok) return res.status(400).json({ message: check.message });
+
+    // ---- Chống tạo trùng: cùng tên + hạng mục tạo trong 2 phút gần nhất ----
+    // (Người dùng thường bấm "Lưu" nhiều lần khi Render khởi động lạnh chậm.)
+    const twoMinutesAgo = Date.now() - 2 * 60 * 1000;
+    const dup = dataStore
+      .get('exams')
+      .find(
+        (e) =>
+          e.title === check.data.title &&
+          e.category === check.data.category &&
+          new Date(e.createdAt).getTime() > twoMinutesAgo
+      );
+    if (dup) {
+      return res.status(409).json({
+        message:
+          `Đề thi "${dup.title}" vừa được tạo lúc ${new Date(dup.createdAt).toLocaleTimeString('vi-VN')}. ` +
+          'Không tạo lại đề trùng tên trong vòng 2 phút (có thể bạn đã bấm nút Lưu nhiều lần).',
+        exam: { id: dup.id, title: dup.title },
+      });
+    }
 
     const exam = {
       id: newId('exam'),
@@ -111,9 +143,46 @@ router.post('/exams', async (req, res, next) => {
       createdAt: new Date().toISOString(),
     };
     dataStore.get('exams').push(exam);
-    await dataStore.saveNow('exams');
+    const sync = await dataStore.saveNow('exams');
     res.status(201).json({
-      message: `Đã tạo đề thi "${exam.title}" với ${exam.questions.length} câu hỏi.`,
+      message: `Đã tạo đề thi "${exam.title}" với ${exam.questions.length} câu hỏi.${syncSuffix(sync)}`,
+      synced: sync.synced,
+      exam: { id: exam.id, title: exam.title },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/** Chi tiết đầy đủ một đề thi (kèm đáp án đúng — CHỈ admin được xem). */
+router.get('/exams/:id', (req, res) => {
+  const exam = dataStore.get('exams').find((e) => e.id === req.params.id);
+  if (!exam) return res.status(404).json({ message: 'Không tìm thấy đề thi.' });
+  res.json({ exam });
+});
+
+/** Chỉnh sửa đề thi: tên, hạng mục, thời lượng, mô tả, toàn bộ câu hỏi. */
+router.put('/exams/:id', async (req, res, next) => {
+  try {
+    const exam = dataStore.get('exams').find((e) => e.id === req.params.id);
+    if (!exam) return res.status(404).json({ message: 'Không tìm thấy đề thi.' });
+
+    const check = validateExamPayload(req.body);
+    if (!check.ok) return res.status(400).json({ message: check.message });
+
+    // Giữ nguyên định danh + dấu vết tạo; ghi rõ người sửa để đối chiếu sau.
+    exam.title = check.data.title;
+    exam.description = check.data.description;
+    exam.category = check.data.category;
+    exam.durationMinutes = check.data.durationMinutes;
+    exam.questions = check.data.questions;
+    exam.updatedAt = new Date().toISOString();
+    exam.updatedBy = req.user.cccd;
+
+    const sync = await dataStore.saveNow('exams');
+    res.json({
+      message: `Đã cập nhật đề thi "${exam.title}" (${exam.questions.length} câu hỏi).${syncSuffix(sync)}`,
+      synced: sync.synced,
       exam: { id: exam.id, title: exam.title },
     });
   } catch (err) {
@@ -127,8 +196,33 @@ router.delete('/exams/:id', async (req, res, next) => {
     const idx = exams.findIndex((e) => e.id === req.params.id);
     if (idx === -1) return res.status(404).json({ message: 'Không tìm thấy đề thi.' });
     const [removed] = exams.splice(idx, 1);
-    await dataStore.saveNow('exams');
-    res.json({ message: `Đã xóa đề thi "${removed.title}".` });
+    const sync = await dataStore.saveNow('exams');
+    res.json({
+      message: `Đã xóa đề thi "${removed.title}".${syncSuffix(sync)}`,
+      synced: sync.synced,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * Đồng bộ NGAY toàn bộ dữ liệu đang chờ lên Google Drive.
+ * Dùng khi admin muốn chắc chắn dữ liệu đã an toàn trước khi server nghỉ
+ * (Render free tier tắt service sau 15 phút không có request).
+ */
+router.post('/sync', async (req, res, next) => {
+  try {
+    for (const key of dataStore.FILES) await dataStore.saveNow(key);
+    const sync = dataStore.getSyncInfo();
+    const pending = sync.filter((s) => s.pending);
+    res.json({
+      message: pending.length
+        ? 'Vẫn còn file CHƯA đồng bộ được lên Google Drive — hãy kiểm tra cấu hình Drive (README mục 3, chạy: node tools/check-drive.js).'
+        : 'Mọi dữ liệu đã được đồng bộ an toàn lên Google Drive.',
+      synced: pending.length === 0,
+      sync,
+    });
   } catch (err) {
     next(err);
   }
@@ -179,8 +273,8 @@ router.put('/results/:id', async (req, res, next) => {
 
     result.editedAt = new Date().toISOString();
     result.editedBy = req.user.cccd;
-    await dataStore.saveNow('results');
-    res.json({ message: 'Đã cập nhật kết quả bài làm.', result });
+    const sync = await dataStore.saveNow('results');
+    res.json({ message: `Đã cập nhật kết quả bài làm.${syncSuffix(sync)}`, synced: sync.synced, result });
   } catch (err) {
     next(err);
   }
@@ -192,8 +286,8 @@ router.delete('/results/:id', async (req, res, next) => {
     const idx = results.findIndex((r) => r.id === req.params.id);
     if (idx === -1) return res.status(404).json({ message: 'Không tìm thấy kết quả bài làm.' });
     results.splice(idx, 1);
-    await dataStore.saveNow('results');
-    res.json({ message: 'Đã xóa kết quả bài làm.' });
+    const sync = await dataStore.saveNow('results');
+    res.json({ message: `Đã xóa kết quả bài làm.${syncSuffix(sync)}`, synced: sync.synced });
   } catch (err) {
     next(err);
   }

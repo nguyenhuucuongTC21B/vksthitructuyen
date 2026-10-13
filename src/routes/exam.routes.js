@@ -146,10 +146,14 @@ router.post('/exams/:id/submit', async (req, res, next) => {
     attempts.delete(key);
 
     // Đồng bộ vĩnh viễn kết quả lên Google Drive NGAY khi nộp bài.
-    await dataStore.saveNow('results');
+    // Nếu Drive tạm lỗi: kết quả vẫn giữ trong RAM + mirror cục bộ, tự thử lại
+    // mỗi 30s — thí sinh không bị mất bài, chỉ nhận cảnh báo nhẹ.
+    const sync = await dataStore.saveNow('results');
 
     res.status(201).json({
-      message: 'Đã nộp bài thành công!',
+      message: sync.synced
+        ? 'Đã nộp bài thành công!'
+        : 'Đã nộp bài thành công! (Dữ liệu chưa sync lên Drive — hệ thống sẽ tự thử lại, bạn không cần làm gì thêm.)',
       result: {
         id: result.id,
         score: result.score,

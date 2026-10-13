@@ -79,12 +79,15 @@ router.post('/register', async (req, res, next) => {
     delete user.password;
     users.push(user);
 
-    // Ghi vĩnh viễn lên Drive NGAY (thao tác quan trọng) — await ở đây để chắc
-    // chắn đăng ký không thất lạc; vòng upload có Mutex nên không chặn người khác.
-    await dataStore.saveNow('users');
+    // Ghi vĩnh viễn lên Drive NGAY (thao tác quan trọng). Nếu Drive tạm lỗi /
+    // cấu hình sai: KHÔNG làm đăng ký thất bại — dữ liệu được giữ trong RAM +
+    // mirror cục bộ, hệ thống tự thử lại mỗi 30s; kèm cảnh báo trong phản hồi.
+    const sync = await dataStore.saveNow('users');
 
     res.status(201).json({
-      message: 'Đăng ký tài khoản thành công!',
+      message: sync.synced
+        ? 'Đăng ký tài khoản thành công!'
+        : 'Đăng ký thành công! NHƯNG dữ liệu chưa đồng bộ được lên Google Drive — kiểm tra cấu hình Drive (README mục 3) rồi thử lại; hệ thống vẫn tự đồng bộ khi Drive hoạt động trở lại.',
       token: signToken({ cccd: user.cccd, role: user.role }),
       user: publicUser(user),
     });
