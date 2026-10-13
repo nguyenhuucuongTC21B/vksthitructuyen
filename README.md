@@ -338,6 +338,14 @@ chi tiết bên phải từng biến) → **Save Changes** → sang tab **Manual
 > không làm server chạy lại với giá trị mới. Sau deploy, giữ tab admin.html mở và bấm chờ
 > 20–60 giây (Render khởi động lạnh) rồi đăng nhập lại.
 
+> 💡 **Mức 4 báo "Service Accounts do not have storage quota"?** Đây là giới hạn của Google:
+> Service Account không có dung lượng riêng nên KHÔNG tự tạo được file mới, nhưng **CẬP NHẬT
+> được file có sẵn**. Cách xử lý: tạo sẵn 3 file trong thư mục bằng **File upload** (kéo thả
+> file `.json` từ máy vào thư mục — KHÔNG tạo bằng Google Docs), đặt đúng tên chữ thường
+> `users.json` / `exams.json` / `results.json`, nội dung mỗi file chỉ cần `[]`. Bấm "Kiểm tra
+> lại" — mức 4 sẽ tự chuyển sang kiểm tra cập nhật file có sẵn và hiện ✅ nếu mọi thứ ổn.
+> Server tự nhận các file này trong tối đa 30 giây, không cần restart.
+
 ### Bảng xử lý 6 lỗi thường gặp
 
 | Thông báo lỗi (log server / script) | Nguyên nhân | Cách xử lý |
@@ -346,7 +354,7 @@ chi tiết bên phải từng biến) → **Save Changes** → sang tab **Manual
 | `403 The caller does not have permission` | Chưa Share thư mục, hoặc share quyền Viewer; hoặc tài khoản tổ chức chặn chia sẻ ngoài | Làm lại 6c với quyền **Editor**; nếu là tài khoản tổ chức → chuyển sang @gmail.com cá nhân |
 | `404 File not found: <id>` | `GOOGLE_DRIVE_FOLDER_ID` sai (copy cả URL, dư khoảng trắng, thư mục đã xóa) | Lấy lại ở Bước 6b — chỉ lấy đoạn sau `/folders/` |
 | `401 invalid_grant` / `invalid_client` / lỗi JWT | Base64 hỏng (copy thiếu, thừa dòng trống) hoặc key đã bị xóa/thu hồi | Tạo lại key (Bước 4) + mã hóa lại (Bước 7, dùng Set-Clipboard / pbcopy) |
-| `403 storageQuotaExceeded` (hiếm gặp) | Service Account không có dung lượng riêng | Tự tạo sẵn 3 file rỗng `users.json`, `exams.json`, `results.json` trong thư mục Drive (mỗi file chỉ chứa chữ `[]`) — server sẽ dùng đúng các file đó |
+| `403 storageQuotaExceeded` / "Service Accounts do not have storage quota" | Service Account KHÔNG có dung lượng riêng — KHÔNG tự tạo được file MỚI (giới hạn của Google, không phải lỗi cấu hình) | Tạo sẵn 3 file THUẦN đúng tên `users.json`, `exams.json`, `results.json` trong thư mục Drive: **bấm New → File upload** (hoặc kéo thả file .json từ máy) — KHÔNG dùng New → Google Docs; nội dung mỗi file chỉ cần `[]`. Cập nhật file có sẵn thì KHÔNG tốn quota — hệ thống chạy bình thường. Mức 4 của "Kiểm tra Drive ngay" sẽ tự nhận diện và xác nhận |
 | Log in `CHE DO CUC BO` (local mode) | Thiếu 1 trong 2 biến Google | Kiểm tra `.env` (local) hoặc mục Environment (Render) đã khai báo đủ 2 biến chưa |
 
 ---

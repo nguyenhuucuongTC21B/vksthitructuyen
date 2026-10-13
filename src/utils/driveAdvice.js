@@ -11,6 +11,23 @@
 'use strict';
 
 /**
+ * Nhận diện lỗi "Service Account không có dung lượng riêng" — KHÔNG tự tạo
+ * được file MỚI trên Drive (giới hạn của Google), nhưng vẫn CẬP NHẬT được
+ * file có sẵn (mô hình vận hành của hệ thống: 3 file users/exams/results.json
+ * được tạo sẵn trong thư mục).
+ */
+function isQuotaError(err) {
+  const reason = (err && err.errors && err.errors[0] && err.errors[0].reason) || '';
+  const msg = `${(err && err.message) || ''} ${reason}`.toLowerCase();
+  return (
+    msg.includes('storagequotaexceeded') ||
+    msg.includes('do not have storage quota') ||
+    msg.includes('storage quota') ||
+    msg.includes('disk quota')
+  );
+}
+
+/**
  * Phân tích lỗi Google API và trả về chuỗi gợi ý sửa lỗi tiếng Việt.
  * @param {Error} err Lỗi bắt được từ googleapis.
  * @returns {string|null} Gợi ý sửa lỗi, hoặc null nếu chưa nhận diện được.
@@ -39,10 +56,11 @@ function adviceForError(err) {
       'Sửa: mở thư mục trên Drive → nút Share → dán đúng email Service Account (client_email) → ' +
       'đổi quyền thành EDITOR → Send. Nếu dùng tài khoản tổ chức bị chặn chia sẻ, hãy tạo thư mục bằng @gmail.com cá nhân.';
   }
-  if (msg.includes('storagequotaexceeded') || msg.includes('disk quota')) {
-    return 'LỖI DUNG LƯỢNG (hiếm gặp): Service Account không có dung lượng riêng. ' +
-      'Cách xử lý: tự tạo sẵn 3 file rỗng trong thư mục Drive tên users.json / exams.json / results.json ' +
-      '(mỗi file chỉ cần nội dung []) — server sẽ dùng đúng các file đó thay vì tự tạo mới.';
+  if (isQuotaError(err)) {
+    return 'LỖI DUNG LƯỢNG: Service Account KHÔNG có dung lượng riêng nên không tự tạo được file MỚI (giới hạn của Google). ' +
+      'Hệ thống vẫn chạy tốt nếu trong thư mục Drive đã có sẵn 3 file THUẦN đúng tên: users.json, exams.json, results.json ' +
+      '(tạo bằng cách UPLOAD file .json từ máy tính — KHÔNG dùng "Google Docs"; nội dung mỗi file chỉ cần []). ' +
+      'Nếu đã tạo rồi: kiểm tra đúng chính tả tên file (chữ thường, có đuôi .json) rồi bấm "Kiểm tra lại" — mức 4 sẽ tự chuyển sang kiểm tra cập nhật file có sẵn.';
   }
   if (msg.includes('err_ossl') || msg.includes('decoder routines') || msg.includes('pem_read') || msg.includes('no start line') || msg.includes('bad decrypt')) {
     return 'PRIVATE_KEY KHÔNG ĐỌC ĐƯỢC: chuỗi key bị hỏng khi copy/encode Base64 (thiếu đầu/cuối, đứt dòng, dán thiếu). ' +
@@ -70,4 +88,4 @@ function describeError(err) {
   return tip ? `${base} → ${tip}` : base;
 }
 
-module.exports = { adviceForError, describeError };
+module.exports = { adviceForError, describeError, isQuotaError };

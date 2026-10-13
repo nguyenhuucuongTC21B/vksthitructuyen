@@ -15,7 +15,7 @@
 
 const { Readable } = require('stream');
 const { google } = require('googleapis');
-const { adviceForError } = require('../utils/driveAdvice');
+const { adviceForError, isQuotaError } = require('../utils/driveAdvice');
 
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
 const TEST_FILE_NAME = '__drive_check__.json';
@@ -222,7 +222,60 @@ async function updateFile(fileId, contentString) {
   );
 }
 
+/** Lấy siêu dữ liệu file (id, name, mimeType) — dùng phân biệt file JSON thuần vs Google Docs. */
+async function getFileMeta(fileId) {
+  if (!isDriveMode()) return null;
+  const res = await withRetry(
+    () => drive.files.get({ fileId, fields: 'id, name, mimeType' }),
+    2,
+    `meta ${fileId}`
+  );
+  return res.data;
+}
+
 /* ------------------------------ CHẨN ĐOÁN TRỰC TIẾP ------------------------------ */
+
+/**
+ * Kiểm tra "mô hình 3 file tạo sẵn": Service Account không có dung lượng riêng
+ * nên không tự tạo được file mới — nhưng có CẬP NHẬT được file có sẵn hay không?
+ * Duyệt users.json → exams.json → results.json, lấy file đầu tiên tìm thấy:
+ *  - Tải nội dung HIỆN TẠI về, ghi lại ĐÚNG nội dung đó (không đổi gì) — an toàn tuyệt đối.
+ *  - File là Google Docs (không phải JSON thuần) → báo lỗi cụ thể để user upload lại.
+ * Trả về { ok, detail }.
+ */
+async function checkUpdateExistingFile(dapi, fid) {
+  const NAMES = ['users.json', 'exams.json', 'results.json'];
+  for (const name of NAMES) {
+    let fileId = null;
+    try {
+      const res = await dapi.files.list({
+        q: `name = '${name}' and '${fid}' in parents and trashed = false`,
+        fields: 'files(id, name, mimeType)',
+        pageSize: 1,
+      });
+      const f = res.data && res.data.files && res.data.files[0];
+      if (!f) continue;
+      fileId = f.id;
+      if (f.mimeType && f.mimeType !== 'application/json') {
+        return {
+          ok: false,
+          detail: `file ${name} đang là "${f.mimeType}" (không phải file JSON thuần — có thể bạn tạo bằng Google Docs). Hãy XÓA file đó trong thư mục rồi UPLOAD lại file .json từ máy tính (nội dung []).`,
+        };
+      }
+      const dl = await dapi.files.get({ fileId, alt: 'media' }, { responseType: 'arraybuffer' });
+      const content = Buffer.from(dl.data).toString('utf8');
+      await dapi.files.update({ fileId, media: { mimeType: 'application/json', body: Readable.from([content]) } });
+      return { ok: true, detail: `${name}` };
+    } catch (e) {
+      if (fileId) return { ok: false, detail: `không cập nhật được file ${name}: ${e.message}` };
+      continue; // Không thấy file này — thử file tiếp theo.
+    }
+  }
+  return {
+    ok: false,
+    detail: 'không tìm thấy file nào trong thư mục — cần tạo sẵn users.json, exams.json, results.json (upload file .json từ máy, nội dung mỗi file chỉ cần []).',
+  };
+}
 
 /**
  * Kiểm tra sống 5 mức NGAY TRÊN SERVER (admin bấm nút là chạy):
@@ -300,6 +353,7 @@ async function runDiagnostic() {
 
   // --- Mức 4: tạo file test (quyền GHI) ---
   let testFileId = null;
+  let quotaFallback = false; // Lỗi quota → chuyển sang kiểm tra CẬP NHẬT file có sẵn.
   try {
     testFileId = await dapi.files.create({
       requestBody: { name: TEST_FILE_NAME, parents: [fid] },
@@ -314,32 +368,70 @@ async function runDiagnostic() {
     });
   } catch (err) {
     err.code = err.code || (err.errors && err.errors[0] && err.errors[0].code);
-    steps.push({
-      name: '4. GHI file test lên thư mục (quyền Editor)',
-      ok: false,
-      detail: err.message,
-      advice: adviceForError(err),
-    });
-    return finishDiagnostic(false);
+
+    // ---- TRƯỜNG HỢP ĐẶC BIỆT: Service Account không có dung lượng riêng ----
+    // Google CHẶN Service Account TỰ TẠO file mới (quota = 0), nhưng vẫn cho
+    // CẬP NHẬT file có sẵn. Hệ thống dùng đúng mô hình này (3 file tạo tay):
+    // nên nếu CẬP NHẬT được file có sẵn thì coi như PASS hoàn toàn.
+    if (isQuotaError(err)) {
+      quotaFallback = true;
+      const upd = await checkUpdateExistingFile(dapi, fid);
+      if (upd.ok) {
+        steps.push({
+          name: '4. GHI file test lên thư mục (quyền Editor)',
+          ok: true,
+          detail:
+            'Service Account KHÔNG tự tạo được file MỚI (không có dung lượng riêng — giới hạn của Google, không phải lỗi cấu hình). ' +
+            `Tuy nhiên đã xác nhận: CẬP NHẬT ĐƯỢC file có sẵn trong thư mục (đã ghi thử lại file ${upd.detail} mà không mất dữ liệu) ` +
+            '— đây chính là mô hình hệ thống sử dụng với 3 file users/exams/results.json tạo sẵn. HỆ THỐNG HOẠT ĐỘNG BÌNH THƯỜNG.',
+          advice: null,
+        });
+      } else {
+        steps.push({
+          name: '4. GHI file test lên thư mục (quyền Editor)',
+          ok: false,
+          detail: `${err.message}. Kiểm tra cập nhật file có sẵn: ${upd.detail}`,
+          advice: adviceForError(err),
+        });
+        return finishDiagnostic(false);
+      }
+    } else {
+      steps.push({
+        name: '4. GHI file test lên thư mục (quyền Editor)',
+        ok: false,
+        detail: err.message,
+        advice: adviceForError(err),
+      });
+      return finishDiagnostic(false);
+    }
   }
 
   // --- Mức 5: xóa file test ---
-  try {
-    await dapi.files.delete({ fileId: testFileId });
+  if (quotaFallback) {
     steps.push({
       name: '5. Dọn dẹp file test',
       ok: true,
-      detail: 'Đã xóa file test — kết nối Drive HOÀN TOÀN SẠCH SẼ.',
+      detail: 'Bỏ qua (kiểm tra bằng file có sẵn — không tạo rác trong thư mục của bạn).',
       advice: null,
     });
-  } catch (err) {
-    // Không coi là lỗi nghiêm trọng — file test chỉ rác nhỏ.
-    steps.push({
-      name: '5. Dọn dẹp file test',
-      ok: true,
-      detail: `Không xóa được file test (${err.message}) — không sao, có thể xóa tay trong Drive.`,
-      advice: null,
-    });
+  } else {
+    try {
+      await dapi.files.delete({ fileId: testFileId });
+      steps.push({
+        name: '5. Dọn dẹp file test',
+        ok: true,
+        detail: 'Đã xóa file test — kết nối Drive HOÀN TOÀN SẠCH SẼ.',
+        advice: null,
+      });
+    } catch (err) {
+      // Không coi là lỗi nghiêm trọng — file test chỉ rác nhỏ.
+      steps.push({
+        name: '5. Dọn dẹp file test',
+        ok: true,
+        detail: `Không xóa được file test (${err.message}) — không sao, có thể xóa tay trong Drive.`,
+        advice: null,
+      });
+    }
   }
 
   return finishDiagnostic(true);
@@ -381,5 +473,6 @@ module.exports = {
   createFile,
   downloadFile,
   updateFile,
+  getFileMeta,
   runDiagnostic,
 };

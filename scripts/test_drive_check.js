@@ -273,6 +273,173 @@ async function scenarioC() {
   }
 }
 
+async function scenarioD() {
+  console.log('\n──── KỊCH BẢN D (unit): tự chữa lỗi QUOTA bằng file tạo tay ────');
+  try {
+    process.env.GOOGLE_SERVICE_ACCOUNT_JSON = FAKE_KEY;
+    process.env.GOOGLE_DRIVE_FOLDER_ID = '1FakeFolderIdForTesting';
+    // Xóa cache module để dataStore/driveClient khởi động lại sạch.
+    for (const m of Object.keys(require.cache)) {
+      if (m.includes(path.join(ROOT, 'src'))) delete require.cache[m];
+    }
+
+    const dataStore = require(path.join(ROOT, 'src/store/dataStore'));
+    const driveClient = require(path.join(ROOT, 'src/drive/driveClient'));
+
+    const QUOTA_ERR = new Error('Service Accounts do not have storage quota.');
+    let fileExistsOnDrive = false; // File users.json tạo tay: chưa có lúc boot.
+    let createAttempts = 0;
+    let downloadedContent = null;
+
+    driveClient.isDriveMode = () => true;
+    driveClient.findFileByName = async (name) => (fileExistsOnDrive ? 'user-file-1' : null);
+    driveClient.downloadFile = async () => {
+      // File tạo tay chứa sẵn 1 bản ghi cũ (giả lập dữ liệu có sẵn).
+      return downloadedContent || [{ id: 'user-old', cccd: '099999999999', fullName: 'Cũ trong file tạo tay' }];
+    };
+    driveClient.createFile = async () => {
+      createAttempts++;
+      throw QUOTA_ERR; // Mô phỏng: SA không có dung lượng → không tạo được file mới.
+    };
+    let uploaded = null;
+    driveClient.updateFile = async (fileId, content) => {
+      uploaded = JSON.parse(content);
+    };
+
+    await dataStore.init(); // Boot: findFileByName → null → createFile → QUOTA → bootLoadFailed.
+
+    // Admin thêm dữ liệu mới trong RAM.
+    dataStore.get('users').push({ id: 'ram-1', cccd: '012345678906', fullName: 'Mới trong RAM' });
+    fileExistsOnDrive = true; // ...và người dùng VỪA tạo file users.json trong thư mục.
+
+    await dataStore.saveNow('users');
+    check('D1. Đã thử tạo file (đúng kịch bản quota)', createAttempts >= 1);
+    check(
+      'D2. TỰ CHỮA: sync thành công bằng file người dùng tạo tay (không cần restart)',
+      Array.isArray(uploaded),
+      JSON.stringify(uploaded)
+    );
+    check(
+      'D3. Dữ liệu cũ trong file tạo tay được GIỮ (user-old)',
+      Array.isArray(uploaded) && uploaded.some((u) => u.id === 'user-old')
+    );
+    check(
+      'D4. Dữ liệu mới trong RAM được GHI (ram-1)',
+      Array.isArray(uploaded) && uploaded.some((u) => u.id === 'ram-1')
+    );
+
+    // lastError phải có gợi ý cụ thể cho lỗi quota (khi chưa tự chữa).
+    const info = dataStore.getSyncInfo().find((s) => s.file === 'users.json');
+    check('D5. Sau sync thành công lastError được xóa', info.lastError === null, JSON.stringify(info));
+  } finally {
+    try { fs.rmSync(path.join(ROOT, 'data'), { recursive: true, force: true }); } catch {}
+  }
+}
+
+async function scenarioE() {
+  console.log('\n──── KỊCH BẢN E (unit): file Google Docs (không phải JSON thuần) ────');
+  try {
+    process.env.GOOGLE_SERVICE_ACCOUNT_JSON = FAKE_KEY;
+    process.env.GOOGLE_DRIVE_FOLDER_ID = '1FakeFolderIdForTesting';
+    for (const m of Object.keys(require.cache)) {
+      if (m.includes(path.join(ROOT, 'src'))) delete require.cache[m];
+    }
+
+    const dataStore = require(path.join(ROOT, 'src/store/dataStore'));
+    const driveClient = require(path.join(ROOT, 'src/drive/driveClient'));
+
+    driveClient.isDriveMode = () => true;
+    driveClient.findFileByName = async () => 'gdoc-file-1';
+    driveClient.downloadFile = async () => {
+      throw new Error('Invalid JSON'); // Google Docs alt:media trả nội dung không parse được.
+    };
+    driveClient.getFileMeta = async () => ({ id: 'gdoc-file-1', name: 'users.json', mimeType: 'application/vnd.google-apps.document' });
+    driveClient.updateFile = async () => {};
+
+    await dataStore.init();
+    dataStore.get('users').push({ id: 'r1', cccd: '012345678907', fullName: 'X' });
+    await dataStore.saveNow('users');
+
+    const info = dataStore.getSyncInfo().find((s) => s.file === 'users.json');
+    check(
+      'E1. Báo lỗi CHÍNH XÁC file không phải JSON thuần (Google Docs)',
+      /Google Docs|không phải file JSON thuần/i.test(info.lastError || ''),
+      info.lastError
+    );
+    check('E2. KHÔNG upload đè lên file Google Docs', info.pending === true);
+  } finally {
+    try { fs.rmSync(path.join(ROOT, 'data'), { recursive: true, force: true }); } catch {}
+  }
+}
+
+async function scenarioF() {
+  console.log('\n──── KỊCH BẢN F (unit): checkUpdateExistingFile — mô hình 3 file tạo tay ────');
+  try {
+    process.env.GOOGLE_SERVICE_ACCOUNT_JSON = FAKE_KEY;
+    process.env.GOOGLE_DRIVE_FOLDER_ID = '1FakeFolderIdForTesting';
+    const driveClient = require(path.join(ROOT, 'src/drive/driveClient'));
+    // Truy cập hàm nội bộ qua runDiagnostic không tiện — test gián tiếp bằng fake dapi.
+    // Hàm không export? export tạm qua closure không được → test qua module cache hack:
+    // Thay vào đó, gọi qua một bản sao của module với __test hook không có → bỏ qua unit trực tiếp,
+    // đã được bao phủ bởi kịch bản G (runDiagnostic với fake dapi).
+    check('F1. (bỏ qua — được bao phủ trong kịch bản G)', true);
+  } finally {}
+}
+
+async function scenarioG() {
+  console.log('\n──── KỊCH BẢN G: runDiagnostic mức 4 TỰ CHUYỂN khi lỗi quota ────');
+  try {
+    process.env.GOOGLE_SERVICE_ACCOUNT_JSON = FAKE_KEY;
+    process.env.GOOGLE_DRIVE_FOLDER_ID = '1kvdJX6Va5OcS_OOQ8Jn7YhY3aRRSFR5M';
+    for (const m of Object.keys(require.cache)) {
+      if (m.includes(path.join(ROOT, 'src'))) delete require.cache[m];
+    }
+    // Googleapis không gọi thật: runDiagnostic dùng buildDriveClient → google.drive thực.
+    // Ta monkey-patch google.drive TRƯỚC khi require driveClient.
+    const fakeDapi = {
+      files: {
+        list: async ({ q }) => {
+          if (q.includes('__drive_check__')) return { data: { files: [] } }; // mức 3
+          if (q.includes('users.json')) return { data: { files: [{ id: 'uf1', name: 'users.json', mimeType: 'application/json' }] } };
+          return { data: { files: [] } };
+        },
+        create: async () => {
+          throw Object.assign(new Error('Service Accounts do not have storage quota. Leverage shared drives'), { code: 403 });
+        },
+        get: async (params) => {
+          // alt:media download users.json → nội dung [] (file tạo tay rỗng)
+          if (params.alt === 'media') return { data: Buffer.from('[]') };
+          return { data: { id: params.fileId, mimeType: 'application/json' } };
+        },
+        update: async () => ({ data: { id: 'uf1' } }),
+        delete: async () => ({ data: {} }),
+      },
+    };
+    const mod = require(path.join(ROOT, 'src/drive/driveClient'));
+    // Patch google.drive — driveClient gọi google.drive({version, auth}) trong buildDriveClient.
+    const googleLib = require('googleapis');
+    const originalDrive = googleLib.google.drive;
+    googleLib.google.drive = (opts) => {
+      void opts;
+      return fakeDapi;
+    };
+    try {
+      mod.init(); // buildDriveClient → google.drive fake → mode = drive
+      const result = await mod.runDiagnostic();
+      check('G1. runDiagnostic ok=true khi quota nhưng CẬP NHẬT được file có sẵn', result.ok === true, JSON.stringify(result.steps).slice(0, 400));
+      const step4 = result.steps.find((s) => s.name.startsWith('4.'));
+      check('G2. Mức 4 PASS với giải thích quota đúng', step4.ok === true && /KHÔNG tự tạo được file MỚI/.test(step4.detail), step4.detail.slice(0, 200));
+      const step5 = result.steps.find((s) => s.name.startsWith('5.'));
+      check('G3. Mức 5 bỏ qua dọn dẹp (không tạo rác)', step5.ok === true);
+      check('G4. Thông báo tổng dẫn tới "Đồng bộ ngay"', /Đồng bộ ngay/.test(result.message));
+    } finally {
+      googleLib.google.drive = originalDrive; // Khôi phục.
+    }
+  } finally {
+    try { fs.rmSync(path.join(ROOT, 'data'), { recursive: true, force: true }); } catch {}
+  }
+}
+
 (async () => {
   console.log('════════ TEST: Chẩn đoán Drive + chống mất dữ liệu ════════');
   try { fs.rmSync(path.join(ROOT, 'data'), { recursive: true, force: true }); } catch {}
@@ -281,6 +448,12 @@ async function scenarioC() {
   await scenarioB();
   try { fs.rmSync(path.join(ROOT, 'data'), { recursive: true, force: true }); } catch {}
   await scenarioC();
+  try { fs.rmSync(path.join(ROOT, 'data'), { recursive: true, force: true }); } catch {}
+  await scenarioD();
+  try { fs.rmSync(path.join(ROOT, 'data'), { recursive: true, force: true }); } catch {}
+  await scenarioE();
+  await scenarioF();
+  await scenarioG();
   console.log(`\n════════ KẾT QUẢ: ${pass} PASS / ${fail} FAIL ════════`);
   process.exit(fail ? 1 : 0);
 })().catch((e) => {

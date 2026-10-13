@@ -29,6 +29,7 @@ const fs = require('fs/promises');
 const path = require('path');
 const config = require('../config');
 const driveClient = require('../drive/driveClient');
+const { adviceForError, isQuotaError } = require('../utils/driveAdvice');
 const { globalMutex } = require('../utils/mutex');
 
 const FILES = ['users', 'exams', 'results'];
@@ -93,7 +94,8 @@ async function initOne(key) {
       // NGHIÊM TRỌNG: RAM có thể rỗng trong khi Drive còn dữ liệu cũ. Cấm upload
       // đè lên Drive cho tới khi reconcile thành công (xem flushKey).
       bootLoadFailed[key] = true;
-      lastSyncError[key] = `Lúc khởi động không đọc được file từ Drive: ${err.message}`;
+      const tip = adviceForError(err);
+      lastSyncError[key] = `Lúc khởi động không đọc được file từ Drive: ${err.message}${tip ? ` → ${tip}` : ''}`;
       console.error(`[store] Khong tai duoc ${fileName} tu Drive (${err.message}). Thu doc cache cuc bo...`);
     }
   }
@@ -222,8 +224,32 @@ async function flushKey(key) {
         lastSyncError[key] = null;
         console.log(`[store] Da dong bo ${key}.json len Google Drive (${store[key].data.length} ban ghi)`);
       } catch (err) {
-        // Giữ pending — vòng rà 30s sẽ tự thử lại. Lưu lỗi để dashboard hiển thị.
-        lastSyncError[key] = err.message;
+        // ---- TỰ CHỮA LỖI QUOTA ----
+        // Service Account không tự tạo được file mới (không có dung lượng riêng).
+        // Nếu file đã được tạo tay trong thư mục (sau khi server khởi động) thì
+        // buộc vòng lặp sau chạy lại quy trình ĐỐI CHIẾU đầy đủ: tải file vừa
+        // tìm thấy về, GỘP dữ liệu cũ với dữ liệu trong RAM, rồi mới ghi —
+        // an toàn tuyệt đối, không cần restart.
+        if (!store[key].fileId && isQuotaError(err)) {
+          try {
+            const found = await driveClient.findFileByName(`${key}.json`);
+            if (found) {
+              bootLoadFailed[key] = true; // Ép chạy lại reconcile ở vòng sau.
+              store[key].fileId = null;
+              console.log(`[store] Loi quota khi tao ${key}.json — DA TIM THAY file co san trong thu muc, chay lai doi chieu roi ghi vao file nay.`);
+              continue;
+            }
+          } catch { /* bỏ qua — rơi xuống xử lý lỗi chung bên dưới */ }
+        }
+
+        // Giữ pending — vòng rà 30s sẽ tự thử lại. Lưu lỗi + gợi ý để dashboard hiển thị.
+        // Lưu ý: với RECONCILE_PENDING, reconcileWithDrive ĐÃ đặt lastSyncError cụ thể
+        // (vd: file Google Docs / không tải được) — không ghi đè bằng thông báo chung.
+        if (err.code !== 'RECONCILE_PENDING') {
+          const tip = adviceForError(err);
+          lastSyncError[key] = `${err.message}${tip ? ` → ${tip}` : ''}`;
+          if (tip) console.error(`[store] CACH SUA: ${tip}`);
+        }
         console.error('!'.repeat(70));
         console.error(`[store] KHONG dong bo duoc ${key}.json len Google Drive: ${err.message}`);
         console.error('[store] Du lieu van AN TOAN trong RAM + mirror cuc bo ./data — he thong se TU THU LAI moi 30 giay.');
@@ -259,8 +285,19 @@ async function reconcileWithDrive(key) {
   try {
     remote = await driveClient.downloadFile(fileId);
   } catch (err) {
-    lastSyncError[key] = `Không tải được dữ liệu cũ từ Drive: ${err.message}`;
-    console.error(`[store] Khong doi chieu duoc ${fileName} (${err.message}) — HOAN upload de bao toan du lieu cu.`);
+    // Phân biệt nguyên nhân: file không phải JSON thuần (vd: tạo nhầm Google Docs)
+    // hay lỗi mạng/quyền — mỗi trường hợp một cách sửa khác nhau.
+    let meta = null;
+    try { meta = await driveClient.getFileMeta(fileId); } catch { /* bỏ qua */ }
+    if (meta && meta.mimeType && meta.mimeType !== 'application/json') {
+      lastSyncError[key] =
+        `File ${fileName} trên Drive đang là "${meta.mimeType}" (không phải file JSON thuần — có thể đã tạo bằng Google Docs). ` +
+        'Hãy XÓA file đó trong thư mục Drive rồi UPLOAD lại file .json từ máy tính (nội dung []).';
+      console.error(`[store] ${fileName} khong phai file JSON thuan (${meta.mimeType}) — hoan upload, can doi sang file thuần.`);
+    } else {
+      lastSyncError[key] = `Không tải được dữ liệu cũ từ Drive: ${err.message}`;
+      console.error(`[store] Khong doi chieu duoc ${fileName} (${err.message}) — HOAN upload de bao toan du lieu cu.`);
+    }
     return false;
   }
   const remoteArr = Array.isArray(remote) ? remote : [];
