@@ -4,6 +4,8 @@
  */
 'use strict';
 
+const { toIsoOrNull, fmtVn } = require('./examWindow');
+
 const RE_CCCD = /^\d{12}$/;                // Số CCCD: đúng 12 chữ số.
 const RE_PHONE = /^0\d{9}$/;               // SĐT Việt Nam: 10 số, bắt đầu bằng 0.
 const RE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -73,6 +75,34 @@ function validateExamPayload(body = {}) {
   ]);
   if (base) return { ok: false, message: base };
 
+  // ---- GIỜ THI QUY ĐỊNH (tùy chọn) ----
+  // openAt/closeAt do admin nhập theo GIỜ VIỆT NAM — server quy đổi về ISO UTC.
+  // Chuỗi sai định dạng → toIsoOrNull trả undefined → báo lỗi rõ ràng.
+  let openAt = null;
+  let closeAt = null;
+  if (body.openAt !== undefined && body.openAt !== null && String(body.openAt).trim() !== '') {
+    openAt = toIsoOrNull(body.openAt);
+    if (openAt === undefined) {
+      return { ok: false, message: 'Giờ MỞ CỬA thi không hợp lệ. Hãy chọn lại ngày giờ trong ô lịch (định dạng giờ Việt Nam GMT+7).' };
+    }
+  }
+  if (body.closeAt !== undefined && body.closeAt !== null && String(body.closeAt).trim() !== '') {
+    closeAt = toIsoOrNull(body.closeAt);
+    if (closeAt === undefined) {
+      return { ok: false, message: 'Giờ ĐÓNG CỬA thi không hợp lệ. Hãy chọn lại ngày giờ trong ô lịch (định dạng giờ Việt Nam GMT+7).' };
+    }
+  }
+
+  const scheduleErr = firstError([
+    [openAt && closeAt && Date.parse(closeAt) <= Date.parse(openAt),
+      `Giờ ĐÓNG CỬA (${fmtVn(closeAt)}) phải MUỘN hơn giờ MỞ CỬA (${fmtVn(openAt)}).`],
+    [openAt && closeAt &&
+      (Date.parse(closeAt) - Date.parse(openAt)) < durationMinutes * 60 * 1000,
+      `Khung giờ thi từ ${fmtVn(openAt)} đến ${fmtVn(closeAt)} quá ngắn so với thời lượng làm bài ${durationMinutes} phút. ` +
+      'Hãy kéo dài giờ đóng cửa (nên chừa thêm dư địa 5–15 phút cho thí sinh nộp bài).'],
+  ]);
+  if (scheduleErr) return { ok: false, message: scheduleErr };
+
   const normalized = [];
   for (let i = 0; i < questions.length; i++) {
     const q = questions[i] || {};
@@ -101,7 +131,7 @@ function validateExamPayload(body = {}) {
 
   return {
     ok: true,
-    data: { title, description, category, durationMinutes, questions: normalized },
+    data: { title, description, category, durationMinutes, openAt, closeAt, questions: normalized },
   };
 }
 

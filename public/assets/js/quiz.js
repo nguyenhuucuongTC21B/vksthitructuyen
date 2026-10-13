@@ -46,6 +46,50 @@ function clearAnswersLocal() {
 }
 
 /* ============================ VIEW 1: DANH SÁCH ĐỀ ============================ */
+/**
+ * Giờ thi quy định: thẻ đề hiển thị trạng thái cửa thi + đếm ngược mở/đóng cửa.
+ * Nút "Vào thi" bị KHÓA khi chưa mở cửa hoặc đã đóng cửa (server vẫn chặn lại
+ * lần nữa ở POST /start — khóa ở đây chỉ là lớp giao diện cho thân thiện).
+ */
+function windowInfo(e) {
+  const openMs = e.openAt ? Date.parse(e.openAt) : null;
+  const closeMs = e.closeAt ? Date.parse(e.closeAt) : null;
+  const now = Date.now();
+  let status = 'open';
+  if (openMs !== null && now < openMs) status = 'scheduled';
+  if (closeMs !== null && now >= closeMs) status = 'closed';
+  return { status, openMs, closeMs };
+}
+
+function windowBadgeHtml(e) {
+  if (e.windowStatus === 'unscheduled' && !e.openAt && !e.closeAt) return '';
+  const w = windowInfo(e);
+  if (w.status === 'scheduled') {
+    return `<div class="mt-3 flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2" data-win="${esc(e.id)}">
+      <span>⏰</span><span>Mở cửa từ <b>${esc(fmtVn(e.openAt))}</b> (giờ VN)</span></div>`;
+  }
+  if (w.status === 'closed') {
+    return `<div class="mt-3 flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-100 border border-slate-200 rounded-lg px-3 py-2" data-win="${esc(e.id)}">
+      <span>🔒</span><span>Đã đóng cửa từ <b>${esc(fmtVn(e.closeAt))}</b> (giờ VN)</span></div>`;
+  }
+  const closeTxt = e.closeAt
+    ? `Đang mở — đóng cửa lúc <b>${esc(fmtVn(e.closeAt))}</b> (giờ VN)`
+    : 'Đang mở — thí sinh có thể vào thi';
+  return `<div class="mt-3 flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2" data-win="${esc(e.id)}">
+    <span>🟢</span><span>${closeTxt}</span></div>`;
+}
+
+function windowButtonHtml(e) {
+  const w = windowInfo(e);
+  if (w.status === 'scheduled') {
+    return `<button disabled class="mt-5 w-full bg-slate-200 text-slate-400 font-bold py-3 rounded-xl cursor-not-allowed">⏳ Chưa mở cửa</button>`;
+  }
+  if (w.status === 'closed') {
+    return `<button disabled class="mt-5 w-full bg-slate-200 text-slate-400 font-bold py-3 rounded-xl cursor-not-allowed">🔒 Đã đóng cửa</button>`;
+  }
+  return `<button onclick="startExam('${esc(e.id)}')" class="mt-5 w-full bg-flag-600 hover:bg-flag-700 text-white font-bold py-3 rounded-xl transition">Vào thi</button>`;
+}
+
 async function renderExamList() {
   showView('view-list');
   const user = Auth.user();
@@ -54,6 +98,7 @@ async function renderExamList() {
   const grid = document.getElementById('exam-grid');
   try {
     const { exams } = await api('/exams');
+    state.examMeta = exams; // ticker cập nhật cửa thi theo thời gian thực
     if (exams.length === 0) {
       grid.innerHTML = `
         <div class="col-span-full bg-white rounded-2xl border border-dashed border-slate-200 p-12 text-center">
@@ -64,7 +109,7 @@ async function renderExamList() {
       return;
     }
     grid.innerHTML = exams.map((e) => `
-      <article class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col hover:shadow-soft transition">
+      <article class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col hover:shadow-soft transition" data-exam-card="${esc(e.id)}">
         <span class="self-start bg-flag-50 text-flag-700 text-[11px] font-bold uppercase tracking-wider px-2 py-1 rounded">${esc(e.category)}</span>
         <h2 class="font-serif font-bold text-lg text-slate-900 mt-3 leading-snug">${esc(e.title)}</h2>
         <p class="text-sm text-slate-500 mt-2 leading-relaxed flex-1">${esc(e.description || 'Đề thi trắc nghiệm kiến thức pháp luật.')}</p>
@@ -72,12 +117,43 @@ async function renderExamList() {
           <span>📝 ${e.questionCount} câu</span>
           <span>⏱ ${e.durationMinutes} phút</span>
         </div>
-        <button onclick="startExam('${esc(e.id)}')" class="mt-5 w-full bg-flag-600 hover:bg-flag-700 text-white font-bold py-3 rounded-xl transition">Vào thi</button>
+        ${windowBadgeHtml(e)}
+        ${windowButtonHtml(e)}
       </article>`).join('');
+    startWindowTicker();
   } catch (err) {
     grid.innerHTML = `<div class="col-span-full text-center text-red-500 py-10">${esc(err.message)}</div>`;
   }
 }
+
+/**
+ * Đồng hồ "cửa thi" 1 giây/lần: tự đổi nhãn + nút bấm khi tới giờ mở cửa hoặc
+ * giờ đóng cửa mà KHÔNG cần tải lại trang (thí sinh cứ để tab mở chờ giờ thi).
+ * Mỗi thẻ lưu chữ ký nội dung trong data-sig — chỉ đụng DOM khi trạng thái đổi.
+ */
+let windowTickerId = null;
+const windowSig = new Map(); // examId → signature lần render trước
+function startWindowTicker() {
+  if (windowTickerId) return;
+  windowTickerId = setInterval(() => {
+    if (!state.examMeta) return;
+    for (const card of document.querySelectorAll('[data-exam-card]')) {
+      const id = card.getAttribute('data-exam-card');
+      const e = state.examMeta.find((x) => x.id === id);
+      if (!e) continue;
+      const newBadge = windowBadgeHtml(e);
+      const newBtn = windowButtonHtml(e);
+      const sig = newBadge + '|' + newBtn;
+      if (windowSig.get(id) === sig) continue; // Không đổi — bỏ qua, không nhấp nháy.
+      windowSig.set(id, sig);
+      const oldBadge = card.querySelector('[data-win]');
+      const oldBtn = card.querySelector('article > button, button.mt-5');
+      if (oldBadge) oldBadge.outerHTML = newBadge;
+      if (oldBtn) oldBtn.outerHTML = newBtn;
+    }
+  }, 1000);
+}
+state.examMeta = null; // danh sách đề gốc cho ticker
 
 /* ============================ VÀO THI ============================ */
 async function startExam(examId) {
@@ -107,6 +183,12 @@ async function startExam(examId) {
     showView('view-quiz');
   } catch (err) {
     toast(err.message, 'error');
+    // Bị máy chủ chặn vì giờ thi quy định (423) → nạp lại danh sách để nút
+    // "Vào thi" chuyển sang trạng thái khóa đúng lúc.
+    if (err.status === 423) {
+      state.examId = null;
+      renderExamList();
+    }
   }
 }
 

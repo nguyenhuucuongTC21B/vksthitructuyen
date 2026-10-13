@@ -16,6 +16,7 @@ const driveClient = require('../drive/driveClient');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { hashPassword, verifyPassword, newId } = require('../utils/crypto');
 const { validateExamPayload, RE_CCCD, RE_PHONE, RE_EMAIL } = require('../utils/validate');
+const { missingSampleExams } = require('../data/sampleExams');
 
 const router = express.Router();
 router.use(requireAuth, requireAdmin);
@@ -176,13 +177,18 @@ router.put('/exams/:id', async (req, res, next) => {
     exam.description = check.data.description;
     exam.category = check.data.category;
     exam.durationMinutes = check.data.durationMinutes;
+    exam.openAt = check.data.openAt || null;   // Giờ thi quy định (null = mở mọi lúc).
+    exam.closeAt = check.data.closeAt || null;
     exam.questions = check.data.questions;
     exam.updatedAt = new Date().toISOString();
     exam.updatedBy = req.user.cccd;
 
     const sync = await dataStore.saveNow('exams');
+    const schedTxt = exam.openAt
+      ? ` Mở cửa từ ${new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false, day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Asia/Ho_Chi_Minh' }).format(Date.parse(exam.openAt))} (giờ VN).`
+      : ' (Không quy định giờ thi — thí sinh thi được mọi lúc.)';
     res.json({
-      message: `Đã cập nhật đề thi "${exam.title}" (${exam.questions.length} câu hỏi).${syncSuffix(sync)}`,
+      message: `Đã cập nhật đề thi "${exam.title}" (${exam.questions.length} câu hỏi).${schedTxt}${syncSuffix(sync)}`,
       synced: sync.synced,
       exam: { id: exam.id, title: exam.title },
     });
@@ -201,6 +207,37 @@ router.delete('/exams/:id', async (req, res, next) => {
     res.json({
       message: `Đã xóa đề thi "${removed.title}".${syncSuffix(sync)}`,
       synced: sync.synced,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * NẠP BỘ ĐỀ MẪU (2 đề × 50 câu An toàn thông tin) do Ban Tổ chức chuẩn bị sẵn.
+ * Chỉ thêm những đề CHƯA có trong hệ thống (so theo tên đề) — không nhân đôi.
+ * Dùng khi admin đã xóa bộ đề mẫu muốn nạp lại, hoặc hệ thống từng khởi động
+ * trước khi có tính năng này.
+ */
+router.post('/seed-sample-exams', async (req, res, next) => {
+  try {
+    const missing = missingSampleExams(dataStore.get('exams'));
+    if (missing.length === 0) {
+      return res.json({
+        message: 'Cả 2 bộ đề mẫu đã có sẵn trong hệ thống — không cần nạp lại.',
+        added: 0,
+      });
+    }
+    const now = new Date().toISOString();
+    for (const s of missing) {
+      dataStore.get('exams').push({ ...s, createdBy: req.user.cccd, createdAt: now });
+    }
+    const sync = await dataStore.saveNow('exams');
+    const names = missing.map((s) => s.title).join('; ');
+    res.status(201).json({
+      message: `Đã nạp ${missing.length} bộ đề mẫu: ${names}.${syncSuffix(sync)}`,
+      synced: sync.synced,
+      added: missing.length,
     });
   } catch (err) {
     next(err);

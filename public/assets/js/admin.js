@@ -197,6 +197,21 @@ function askDeleteUser(cccd) {
 /* ================================ ĐỀ THI ================================ */
 let editingExamId = null; // null = đang tạo mới; có giá trị = đang chỉnh sửa đề này.
 
+/** Chip trạng thái cửa thi hiển thị trên thẻ đề trong dashboard. */
+function examScheduleChip(e) {
+  if (!e.openAt && !e.closeAt) return '';
+  const now = Date.now();
+  const openMs = e.openAt ? Date.parse(e.openAt) : null;
+  const closeMs = e.closeAt ? Date.parse(e.closeAt) : null;
+  if (openMs !== null && now < openMs) {
+    return `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 mt-2">⏰ Mở cửa ${esc(fmtVn(e.openAt))} (giờ VN)</span>`;
+  }
+  if (closeMs !== null && now >= closeMs) {
+    return `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 bg-slate-100 border border-slate-200 rounded-lg px-2 py-1 mt-2">🔒 Đóng cửa từ ${esc(fmtVn(e.closeAt))}</span>`;
+  }
+  return `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1 mt-2">🟢 Đang mở${e.closeAt ? ` — đến ${esc(fmtVn(e.closeAt))}` : ''}</span>`;
+}
+
 function renderExams() {
   const host = document.getElementById('exams-list');
   if (cache.exams.length === 0) {
@@ -216,6 +231,7 @@ function renderExams() {
       </div>
       <h3 class="font-bold text-slate-900 mt-3 leading-snug">${esc(e.title)}</h3>
       <p class="text-xs text-slate-500 mt-1.5 leading-relaxed flex-1">${esc(e.description || '—')}</p>
+      ${examScheduleChip(e)}
       <div class="mt-3 flex items-center gap-3 text-xs text-slate-400">
         <span>📝 ${e.questionCount} câu</span><span>⏱ ${e.durationMinutes} phút</span>
       </div>
@@ -236,7 +252,13 @@ async function viewExam(id) {
     document.getElementById('mv-meta').innerHTML =
       `Hạng mục: <b class="text-flag-700">${esc(exam.category)}</b> · ` +
       `${(exam.questions || []).length} câu · ${exam.durationMinutes} phút` +
-      (exam.updatedAt ? ` · <span title="Đã chỉnh sửa bởi admin">✎ đã sửa ${fmtDateTime(exam.updatedAt)}</span>` : '');
+      (exam.updatedAt ? ` · <span title="Đã chỉnh sửa bởi admin">✎ đã sửa ${fmtDateTime(exam.updatedAt)}</span>` : '') +
+      (exam.openAt || exam.closeAt
+        ? `<br>⏰ Giờ thi quy định: ` +
+          (exam.openAt ? `mở cửa <b>${esc(fmtVn(exam.openAt))}</b>` : 'không giới hạn giờ mở') +
+          (exam.closeAt ? ` · đóng cửa <b>${esc(fmtVn(exam.closeAt))}</b>` : ' · không giới hạn giờ đóng') +
+          ' (giờ VN)'
+        : '<br>⏰ Không quy định giờ thi — thí sinh thi được mọi lúc');
     document.getElementById('mv-desc').textContent = exam.description || '';
     document.getElementById('mv-questions').innerHTML = (exam.questions || []).map((q, i) => `
       <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50/60">
@@ -265,6 +287,25 @@ async function viewExam(id) {
 
 /* ---------- Form ra đề / sửa đề: builder câu hỏi động ---------- */
 let questionSeq = 0;
+
+/** Bật/tắt khối nhập giờ thi quy định trong form đề. */
+function toggleScheduleInputs() {
+  const on = document.getElementById('me-sched-on').checked;
+  const box = document.getElementById('me-sched-fields');
+  box.classList.toggle('hidden', !on);
+  if (!on) {
+    document.getElementById('me-openat').value = '';
+    document.getElementById('me-closeat').value = '';
+  }
+}
+
+function resetScheduleInputs(exam = null) {
+  const on = !!(exam && (exam.openAt || exam.closeAt));
+  document.getElementById('me-sched-on').checked = on;
+  document.getElementById('me-openat').value = on ? isoToVnLocal(exam.openAt || '') : '';
+  document.getElementById('me-closeat').value = on ? isoToVnLocal(exam.closeAt || '') : '';
+  document.getElementById('me-sched-fields').classList.toggle('hidden', !on);
+}
 
 function questionRowHtml(n, q) {
   const text = q ? q.text || '' : '';
@@ -313,6 +354,7 @@ function openExamForm() {
   questionSeq = 0;
   document.getElementById('me-error').classList.add('hidden');
   document.getElementById('modal-exam-title').textContent = 'Ra đề thi mới';
+  resetScheduleInputs(null); // ẩn + xóa giờ thi quy định
   const submitBtn = document.getElementById('me-submit');
   submitBtn.textContent = 'Lưu đề thi';
   submitBtn.disabled = false;
@@ -336,6 +378,7 @@ async function openExamEdit(id) {
     document.getElementById('me-category').value = exam.category || '';
     document.getElementById('me-duration').value = exam.durationMinutes || 20;
     document.getElementById('me-desc').value = exam.description || '';
+    resetScheduleInputs(exam); // điền sẵn giờ thi quy định (đổi về giờ VN)
     const questions = exam.questions || [];
     if (questions.length === 0) {
       addQuestionRow();
@@ -376,11 +419,33 @@ document.getElementById('form-exam').addEventListener('submit', async (e) => {
     return;
   }
 
+  // ---- Giờ thi quy định (tùy chọn) ----
+  let openAt = null;
+  let closeAt = null;
+  if (document.getElementById('me-sched-on').checked) {
+    openAt = vnLocalToIso(document.getElementById('me-openat').value);
+    closeAt = vnLocalToIso(document.getElementById('me-closeat').value);
+    if (openAt === undefined || closeAt === undefined) {
+      const el = document.getElementById('me-error');
+      el.textContent = 'Giờ thi quy định không hợp lệ — hãy chọn lại ngày giờ trong ô lịch.';
+      el.classList.remove('hidden');
+      return;
+    }
+    if (!openAt) {
+      const el = document.getElementById('me-error');
+      el.textContent = 'Bạn đã bật "Quy định giờ thi" — vui lòng chọn giờ MỞ CỬA thi.';
+      el.classList.remove('hidden');
+      return;
+    }
+  }
+
   const body = {
     title: document.getElementById('me-title').value.trim(),
     category: document.getElementById('me-category').value.trim(),
     durationMinutes: parseInt(document.getElementById('me-duration').value, 10),
     description: document.getElementById('me-desc').value.trim(),
+    openAt,
+    closeAt,
     questions,
   };
   const submitBtn = document.getElementById('me-submit');
@@ -419,6 +484,21 @@ function askDeleteExam(id, title) {
     renderOverview();
     fillResultFilter();
   });
+}
+
+/** Nạp bộ đề mẫu (2 đề × 50 câu An toàn thông tin) — chỉ thêm những đề còn thiếu. */
+async function seedSampleExams() {
+  try {
+    const data = await api('/admin/seed-sample-exams', { method: 'POST' });
+    toast(data.message, data.synced === false ? 'info' : 'success');
+    if (data.synced === false) checkSyncStatus();
+    await refreshAll();
+    renderExams();
+    renderOverview();
+    fillResultFilter();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
 }
 
 /* ==================== TRẠNG THÁI ĐỒNG BỘ GOOGLE DRIVE ====================

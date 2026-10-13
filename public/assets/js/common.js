@@ -117,6 +117,46 @@ function fmtClock(totalSeconds) {
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 }
 
+/* ------------------------- GIỜ THI QUY ĐỊNH (giờ VN) ------------------------- */
+const VN_TZ = 'Asia/Ho_Chi_Minh';
+
+/** ISO → "14:00 ngày 15/10/2026" theo Giờ Việt Nam (hiển thị cho mọi thí sinh). */
+function fmtVn(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d)) return '—';
+  const time = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: VN_TZ });
+  const date = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: VN_TZ });
+  return `${time} ngày ${date}`;
+}
+
+/** ISO → giá trị cho <input type="datetime-local"> theo Giờ Việt Nam ("2026-10-15T14:00"). */
+function isoToVnLocal(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  const p = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false, timeZone: VN_TZ,
+  }).formatToParts(d);
+  const get = (t) => (p.find((x) => x.type === t) || {}).value || '00';
+  return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`;
+}
+
+/**
+ * Giá trị datetime-local ("2026-10-15T14:00") → ISO UTC.
+ * Quy ước: ô nhập KHÔNG kèm múi giờ nên hiểu là Giờ Việt Nam GMT+7 —
+ * Ban Tổ chức ở bất kỳ đâu đặt "14:00" thì thí sinh Việt Nam cũng thi đúng 14:00.
+ */
+function vnLocalToIso(value) {
+  if (!value) return null;
+  let v = String(value).trim();
+  if (!v) return null;
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v)) v += ':00';
+  const ms = Date.parse(v.endsWith('Z') ? v : v + '+07:00');
+  return isNaN(ms) ? undefined : new Date(ms).toISOString();
+}
+
 /* ------------------------------------ TOAST ------------------------------------ */
 function toast(message, type = 'success') {
   let host = document.getElementById('toast-host');

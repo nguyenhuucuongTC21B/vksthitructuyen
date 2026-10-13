@@ -15,6 +15,7 @@ const express = require('express');
 const dataStore = require('../store/dataStore');
 const { requireAuth } = require('../middleware/auth');
 const { newId } = require('../utils/crypto');
+const { statusOf, gateMessage } = require('../utils/examWindow');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -35,6 +36,10 @@ router.get('/exams', (req, res) => {
       durationMinutes: e.durationMinutes,
       questionCount: (e.questions || []).length,
       createdAt: e.createdAt,
+      // Giờ thi quy định: client dùng để khóa nút "Vào thi" + đếm ngược mở cửa.
+      openAt: e.openAt || null,
+      closeAt: e.closeAt || null,
+      windowStatus: statusOf(e).status,
     }))
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   res.json({ exams });
@@ -70,6 +75,16 @@ router.post('/exams/:id/start', (req, res) => {
   const key = `${req.user.cccd}|${exam.id}`;
   const totalSeconds = exam.durationMinutes * 60;
   let startedAt = attempts.get(key);
+
+  // ---- CỬA THI (giờ thi quy định) ----
+  // Thí sinh đã có lượt đang làm (startedAt tồn tại) thì luôn cho vào lại để
+  // nộp bài/kế tục — chỉ chặn thí sinh MỚI bấm vào ngoài khung giờ quy định.
+  if (!startedAt) {
+    const win = statusOf(exam);
+    const blocked = gateMessage(win, exam.title);
+    if (blocked) return res.status(423).json({ message: blocked });
+  }
+
   if (!startedAt) {
     startedAt = Date.now();
     attempts.set(key, startedAt);
@@ -94,6 +109,15 @@ router.post('/exams/:id/submit', async (req, res, next) => {
     const questions = exam.questions || [];
     if (questions.length === 0) {
       return res.status(400).json({ message: 'Đề thi chưa có câu hỏi hợp lệ.' });
+    }
+
+    // ---- Cửa thi: đề đã đóng cửa + thí sinh CHƯA từng bắt đầu → từ chối nộp ----
+    // (Ai đã bắt đầu trong khung giờ thì vẫn được nộp bình thường, kể cả nộp muộn.)
+    const key0 = `${req.user.cccd}|${exam.id}`;
+    if (!attempts.has(key0)) {
+      const win = statusOf(exam);
+      const blocked = gateMessage(win, exam.title);
+      if (blocked) return res.status(423).json({ message: blocked });
     }
 
     // ---- Xác định thời lượng làm bài (ưu tiên dữ liệu server-side) ----

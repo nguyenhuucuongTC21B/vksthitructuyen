@@ -101,6 +101,33 @@ online-exam-system/
   (POST `/start` cấp thời điểm bắt đầu — refresh trang không được thêm thời gian).
 - Giới hạn 6 lần đăng nhập sai / 15 phút; các trường CCCD/SDT/email kiểm tra định dạng.
 
+### d) Giờ thi quy định (mở cửa theo lịch) — MỚI
+Mỗi đề thi có thể đặt 2 mốc giờ (giờ Việt Nam GMT+7):
+
+| Mốc | Ý nghĩa | Bỏ trống |
+|-----|---------|----------|
+| **Mở cửa thi từ** (`openAt`) | Trước thời điểm này thí sinh bấm "Vào thi" bị từ chối (lỗi 423 kèm thông báo còn bao nhiêu phút nữa) | Đề mở cửa ngay |
+| **Đóng cửa thi lúc** (`closeAt`) | Sau thời điểm này không nhận thí sinh mới vào bài | Không giới hạn giờ đóng |
+
+- Cách đặt: **Admin → Đề thi → Ra đề thi mới / Sửa** → tích "⏰ Quy định giờ thi" → chọn ngày giờ bằng lịch (giờ VN).
+  Khung giờ phải dài ít nhất bằng thời lượng làm bài — server từ chối lưu nếu ngắn hơn.
+- Thí sinh nhìn thấy trạng thái ngay trên danh sách đề: ⏰ chưa mở cửa / 🟢 đang mở (kèm giờ đóng) / 🔒 đã đóng.
+  Tab mở chờ giờ thi sẽ **tự đổi trạng thái khi tới giờ** (đồng hồ cửa thi 1 giây/lần, không cần tải lại trang).
+- Ai **đã vào bài trong khung giờ** thì được làm hết thời lượng đề và nộp bình thường, kể cả nộp sau giờ đóng —
+  cửa thi chỉ chặn người vào MỚI.
+- Thời gian lưu ISO UTC (an toàn múi giờ trên server Render); hiển thị luôn quy về **giờ Việt Nam**.
+
+### e) Bộ đề mẫu 2 × 50 câu An toàn thông tin — MỚI
+- Lần chạy đầu tiên (hoặc khi `exams.json` còn trống `[]`), hệ thống **tự nạp 2 bộ đề mẫu**:
+  - **Bộ đề số 1** — 50 câu ATTT (17 Nhận biết | 23 Thông hiểu & Áp dụng | 10 Vận dụng), 35 phút, mở cửa thi ngay;
+  - **Bộ đề số 2** — 50 câu tương đương, có đặt lịch minh họa "giờ thi quy định": mở cửa 08:00 giờ VN ngày mai,
+    đóng cửa 23:59 giờ VN sau 7 ngày.
+- Không bao giờ tự đè lên đề thi thật: chỉ nạp khi danh sách đề RỘNG HOÀN TOÀN.
+- Nạp lại khi bị xóa nhầm: bấm nút **"⤓ Tải bộ đề mẫu"** trong tab Đề thi (Admin Dashboard) —
+  chỉ thêm đề còn thiếu, không nhân đôi; hoặc chạy `node tools/seed-exams.js` trên máy local.
+- Đáp án các bộ đề mẫu đã đối chiếu với chính mã nguồn hệ thống (TTL token 12 giờ, debounce 1.2s,
+  scrypt + salt, user đầu tiên nhận quyền Admin, rate-limit 6 lần/15 phút...).
+
 ---
 
 ## 3. Thiết lập Google Drive API (Service Account) — hướng dẫn từng nút bấm
@@ -477,6 +504,24 @@ làm mất dữ liệu cũ trên Drive.
 
 **Đổi nội dung trang chủ / tên cuộc thi / hạn thi?** Sửa trực tiếp `public/index.html`
 và hằng số `DEADLINE` trong `public/assets/js/home.js`.
+
+**Cách đặt "đề thi 01 mở cửa 14:00 ngày 15/10/2026"?** Admin → Đề thi → Sửa đề → tích
+"⏰ Quy định giờ thi" → chọn `14:00 15/10/2026` trong ô "Mở cửa thi từ" (giờ VN) → Cập nhật đề thi.
+Thí sinh chỉ bấm được "Vào thi" từ thời điểm đó; trước giờ mở, thẻ đề hiển thị "⏳ Chưa mở cửa" kèm giờ mở.
+Để cuộc thi kết thúc đúng hạn, đặt thêm "Đóng cửa thi lúc".
+
+**Đặt giờ thi xong mà thí sinh báo không vào được bài?** Đối chiếu 3 điểm: (1) khung giờ có dài
+ít nhất bằng thời lượng đề không — server từ chối lưu khung giờ ngắn hơn; (2) đã bấm "Cập nhật đề thi"
+và thấy thông báo "Mở cửa từ ..."; (3) giờ hiển thị là **giờ Việt Nam (GMT+7)** — nếu admin đặt lịch
+ở nước ngoài, ô lịch vẫn quy về giờ VN nên thí sinh Việt Nam thi đúng giờ đã hẹn.
+
+**Bộ đề mẫu tự xuất hiện là gì?** 2 bộ đề × 50 câu An toàn thông tin được nạp sẵn lần đầu chạy
+(hoặc khi exams.json trống) để Ban Tổ chức có ngay dữ liệu dùng thử — xem mục 2e. Có thể sửa/xóa
+tự do; xóa nhầm thì bấm "⤓ Tải bộ đề mẫu" để nạp lại (không nhân đôi).
+
+**File .json rỗng 0 byte tự tạo trong Drive có gây lỗi nữa không?** Không. Phiên bản mới
+**chấp nhận file rỗng** coi như dữ liệu trống và ghi dữ liệu vào bình thường — vì vậy cách tạo
+sẵn 3 file `users.json`, `exams.json`, `results.json` nội dung `[]` (hoặc rỗng hoàn toàn) là hợp lệ.
 
 **Muốn nhiều Admin?** Đăng ký tài khoản rồi Admin hiện tại vào "Người dùng → Sửa → Quyền hạn → Admin",
 hoặc khai báo `ADMIN_CCCDS` trước khi người đó đăng ký.

@@ -206,7 +206,21 @@ async function downloadFile(fileId) {
     `download ${fileId}`
   );
   const text = Buffer.from(res.data).toString('utf8');
-  return JSON.parse(text);
+  // File rỗng (0 byte) hoặc chỉ toàn khoảng trắng: người dùng hay tạo sẵn
+  // 3 file .json "placeholder" trong thư mục Drive theo hướng dẫn. Coi như
+  // mảng rỗng — dữ liệu trong RAM sẽ được GHI VÀO an toàn (không coi là lỗi).
+  if (!text.trim()) {
+    console.warn(`[drive] File ${fileId} trên Drive dang RONG (0 byte) — coi nhu du lieu trong, cho phep ghi moi.`);
+    return [];
+  }
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    // Không nuốt lỗi: file có nội dung nhưng KHÔNG phải JSON (vd: tạo nhầm
+    // Google Docs) → caller (reconcile) cần biết để hướng dẫn sửa đúng cách.
+    const preview = text.slice(0, 60).replace(/\s+/g, ' ');
+    throw new Error(`Nội dung file trên Drive không phải JSON hợp lệ (${err.message}). Đoạn đầu file: "${preview}..."`);
+  }
 }
 
 /** Ghi đè toàn bộ nội dung file JSON (update media). */

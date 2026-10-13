@@ -70,6 +70,30 @@ async function init() {
   console.log(
     `[store] Khoi tao xong: users=${store.users.data.length}, exams=${store.exams.data.length}, results=${store.results.data.length}`
   );
+  await seedSampleExamsIfEmpty();
+}
+
+/**
+ * LẦN CHẠY ĐẦU TIÊN (hoặc file exams.json đang trống `[]` — ví dụ người dùng
+ * mới tạo 3 file rỗng trên Drive): tự nạp 2 BỘ ĐỀ MẪU (2 × 50 câu An toàn
+ * thông tin) để hệ thống có ngay dữ liệu dùng thử. Việc nạp chỉ diễn ra khi
+ * exams RỘNG HOÀN TOÀN — không bao giờ đè lên đề thi thật của Ban Tổ chức.
+ */
+async function seedSampleExamsIfEmpty() {
+  if (store.exams.data.length > 0) return;
+  try {
+    const { buildSampleExams } = require('../data/sampleExams');
+    const samples = buildSampleExams();
+    store.exams.data.push(...samples);
+    await mirrorLocal('exams');
+    save('exams'); // Đồng bộ lên Drive trong vòng 1.2s (bất đồng bộ).
+    console.log(
+      `[store] exams trong — DA NAP ${samples.length} BO DE MAU ( moi de 50 cau ATTT ). ` +
+        'Admin co the sua/xoa tuy y trong Dashboard.'
+    );
+  } catch (err) {
+    console.warn(`[store] Khong nap duoc bo de mau: ${err.message}`);
+  }
 }
 
 async function initOne(key) {
