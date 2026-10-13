@@ -1,0 +1,21 @@
+# Blueprint trien khai len Render.com
+# Cach dung: tren Render -> New + -> Blueprint -> tro repo nay
+services:
+  - type: web
+    name: thi-truc-tuyen
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: GOOGLE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: GOOGLE_DRIVE_FOLDER_ID
+        sync: false
+      - key: ADMIN_CCCDS
+        sync: false

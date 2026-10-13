@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cuộc thi Trắc nghiệm Tìm hiểu Pháp luật Trực tuyến 2026</title>
+  <meta name="description" content="Cổng thông tin Cuộc thi Trắc nghiệm Tìm hiểu Pháp luật Trực tuyến năm 2026 — Trao dồi kiến thức pháp luật, lan tỏa niềm tin và hành động." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23C8102E'/><text x='50' y='72' font-size='62' text-anchor='middle' fill='%23FFCD00'>★</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Lora:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            flag: { 50:'#FEF2F2', 100:'#FEE2E2', 200:'#FECACA', 500:'#C8102E', 600:'#B00D28', 700:'#8F0A20', 800:'#6B0718', 900:'#4A0511' },
+            gold: { 300:'#FFDE6B', 400:'#F9C823', 500:'#F0B429', 600:'#DE911D' },
+          },
+          fontFamily: {
+            sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'],
+            serif: ['Lora', 'Georgia', 'serif'],
+          },
+          boxShadow: { soft: '0 12px 40px -12px rgba(0,0,0,.18)' },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="/assets/css/base.css" />
+</head>
+<body class="font-sans bg-[#FAF7F2] text-slate-800 antialiased">
+
+  <!-- ============ BĂNG RÔN CỔ ĐỘNG ============ -->
+  <div class="marquee-wrap overflow-hidden bg-flag-900 text-gold-300 text-xs sm:text-sm py-1.5">
+    <div class="marquee-track" id="marquee"></div>
+  </div>
+
+  <!-- ============ HEADER ============ -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+      <a href="/" class="flex items-center gap-3 min-w-0">
+        <span class="w-10 h-10 rounded-lg bg-flag-500 flex items-center justify-center text-gold-400 text-2xl leading-none shadow-sm shrink-0">★</span>
+        <span class="min-w-0">
+          <span class="block font-extrabold text-flag-700 leading-tight tracking-wide uppercase text-sm sm:text-base truncate">Cuộc thi Trắc nghiệm</span>
+          <span class="block text-[11px] sm:text-xs text-slate-500 leading-tight uppercase tracking-wider">Tìm hiểu Pháp luật trực tuyến · 2026</span>
+        </span>
+      </a>
+      <nav class="hidden md:flex items-center gap-1 text-sm font-medium text-slate-600">
+        <a href="#gioi-thieu" class="px-3 py-2 rounded-lg hover:bg-flag-50 hover:text-flag-700 transition">Giới thiệu</a>
+        <a href="#the-le" class="px-3 py-2 rounded-lg hover:bg-flag-50 hover:text-flag-700 transition">Thể lệ</a>
+        <a href="#giai-thuong" class="px-3 py-2 rounded-lg hover:bg-flag-50 hover:text-flag-700 transition">Giải thưởng</a>
+        <a href="#tin-tuc" class="px-3 py-2 rounded-lg hover:bg-flag-50 hover:text-flag-700 transition">Tin tức</a>
+        <a href="/quiz.html" class="px-3 py-2 rounded-lg hover:bg-flag-50 hover:text-flag-700 transition">Đề thi</a>
+      </nav>
+      <div id="header-auth" class="flex items-center gap-2"></div>
+    </div>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section class="relative overflow-hidden bg-gradient-to-br from-flag-700 via-flag-600 to-flag-800 text-white star-pattern">
+    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-gold-400/10 blur-3xl"></div>
+    <div class="absolute -bottom-32 -left-20 w-96 h-96 rounded-full bg-flag-900/40 blur-3xl"></div>
+    <div class="relative max-w-6xl mx-auto px-4 py-14 sm:py-20 grid lg:grid-cols-[1.35fr,1fr] gap-10 items-center">
+      <div>
+        <div class="inline-flex items-center gap-2 bg-gold-400 text-flag-900 font-bold text-xs sm:text-sm px-3 py-1.5 rounded-full uppercase tracking-widest shadow">
+          <span>★</span> Ban Tổ chức trân trọng kính mời
+        </div>
+        <h1 class="mt-5 font-serif font-bold leading-tight text-3xl sm:text-4xl lg:text-[2.9rem]">
+          Cuộc thi Trắc nghiệm
+          <span class="block text-gold-300 text-2xl sm:text-3xl lg:text-4xl mt-1">TÌM HIỂU PHÁP LUẬT TRỰC TUYẾN NĂM 2026</span>
+        </h1>
+        <p class="mt-5 text-white/85 text-sm sm:text-base leading-relaxed max-w-2xl">
+          Nhằm nâng cao hiệu quả tuyên truyền, phổ biến và giáo dục pháp luật; tạo sân chơi trí tuệ lành mạnh,
+          bổ ích cho cán bộ, công chức, viên chức và người dân trên phạm vi toàn quốc. Ban Tổ chức trân trọng
+          phát động Cuộc thi Trắc nghiệm Tìm hiểu Pháp luật trực tuyến năm 2026 — hoàn toàn <b class="text-gold-300">miễn phí</b>,
+          tham gia mọi lúc, mọi nơi chỉ với số CCCD của bạn.
+        </p>
+        <div class="mt-7 flex flex-wrap items-center gap-3">
+          <a href="/login.html" class="inline-flex items-center gap-2 bg-gold-400 hover:bg-gold-300 text-flag-900 font-extrabold text-base px-7 py-3.5 rounded-xl shadow-lg shadow-black/20 transition-transform hover:-translate-y-0.5">
+            ★ Tham gia ngay
+          </a>
+          <a href="#the-le" class="inline-flex items-center gap-2 border-2 border-white/40 hover:border-gold-300 hover:text-gold-300 text-white font-semibold text-base px-6 py-3.5 rounded-xl transition">
+            Xem thể lệ
+          </a>
+        </div>
+        <div class="mt-8 flex flex-wrap gap-x-8 gap-y-2 text-xs sm:text-sm text-white/75">
+          <span class="inline-flex items-center gap-1.5"><span class="text-gold-400">✔</span> Miễn phí tham dự</span>
+          <span class="inline-flex items-center gap-1.5"><span class="text-gold-400">✔</span> Kết quả chấm tự động tức thì</span>
+          <span class="inline-flex items-center gap-1.5"><span class="text-gold-400">✔</span> Bảo mật thông tin thí sinh</span>
+        </div>
+      </div>
+
+      <!-- Thẻ đếm ngược -->
+      <div class="bg-white/10 border border-white/20 backdrop-blur rounded-2xl p-6 shadow-soft">
+        <p class="text-center text-gold-300 font-bold uppercase tracking-widest text-xs">Thời gian nhận bài dự thi</p>
+        <p class="text-center text-white/70 text-xs mt-1">Đến hết ngày 31 tháng 12 năm 2026</p>
+        <div id="countdown" class="mt-5 grid grid-cols-4 gap-2 text-center">
+          <div class="bg-white/95 text-flag-700 rounded-xl py-3"><div id="cd-d" class="text-2xl sm:text-3xl font-extrabold">--</div><div class="text-[10px] uppercase tracking-wider text-slate-500 mt-0.5">Ngày</div></div>
+          <div class="bg-white/95 text-flag-700 rounded-xl py-3"><div id="cd-h" class="text-2xl sm:text-3xl font-extrabold">--</div><div class="text-[10px] uppercase tracking-wider text-slate-500 mt-0.5">Giờ</div></div>
+          <div class="bg-white/95 text-flag-700 rounded-xl py-3"><div id="cd-m" class="text-2xl sm:text-3xl font-extrabold">--</div><div class="text-[10px] uppercase tracking-wider text-slate-500 mt-0.5">Phút</div></div>
+          <div class="bg-white/95 text-flag-700 rounded-xl py-3"><div id="cd-s" class="text-2xl sm:text-3xl font-extrabold">--</div><div class="text-[10px] uppercase tracking-wider text-slate-500 mt-0.5">Giây</div></div>
+        </div>
+        <div class="mt-5 space-y-2 text-sm text-white/85">
+          <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-gold-400 shrink-0"></span> Mỗi lượt thi do hệ thống chấm tự động theo thang điểm 10.</div>
+          <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-gold-400 shrink-0"></span> Bảng điểm theo từng hạng mục được công bố trên trang này.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SỐ LIỆU TRUYỀN THÔNG (tự động từ server) ============ -->
+  <section class="max-w-6xl mx-auto px-4 -mt-8 relative z-10">
+    <div class="bg-white rounded-2xl shadow-soft border border-slate-100 grid grid-cols-2 md:grid-cols-4 divide-x divide-slate-100">
+      <div class="py-6 px-3 text-center">
+        <div id="stat-users" class="text-3xl font-extrabold text-flag-600">0</div>
+        <div class="text-xs sm:text-sm text-slate-500 mt-1 uppercase tracking-wide">Thí sinh đăng ký</div>
+      </div>
+      <div class="py-6 px-3 text-center">
+        <div id="stat-exams" class="text-3xl font-extrabold text-flag-600">0</div>
+        <div class="text-xs sm:text-sm text-slate-500 mt-1 uppercase tracking-wide">Đề thi / hạng mục</div>
+      </div>
+      <div class="py-6 px-3 text-center border-t md:border-t-0 border-slate-100">
+        <div id="stat-results" class="text-3xl font-extrabold text-flag-600">0</div>
+        <div class="text-xs sm:text-sm text-slate-500 mt-1 uppercase tracking-wide">Bài thi đã hoàn thành</div>
+      </div>
+      <div class="py-6 px-3 text-center border-t md:border-t-0 border-slate-100">
+        <div id="stat-avg" class="text-3xl font-extrabold text-flag-600">0</div>
+        <div class="text-xs sm:text-sm text-slate-500 mt-1 uppercase tracking-wide">Điểm trung bình</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GIỚI THIỆU ============ -->
+  <section id="gioi-thieu" class="max-w-6xl mx-auto px-4 py-16">
+    <div class="grid lg:grid-cols-2 gap-10 items-start">
+      <div>
+        <p class="text-flag-600 font-bold uppercase tracking-widest text-xs">Giới thiệu chung</p>
+        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-slate-900 mt-2">Sân chơi pháp luật cho mọi công dân</h2>
+        <div class="mt-4 space-y-4 text-slate-600 leading-relaxed text-[15px]">
+          <p>
+            Cuộc thi Trắc nghiệm Tìm hiểu Pháp luật trực tuyến năm 2026 được phát động nhằm cụ thể hóa chủ trương
+            chuyển đổi số trong công tác phổ biến, giáo dục pháp luật; đưa nội dung pháp luật thiết yếu đến gần hơn
+            với cán bộ, công chức, viên chức, lực lượng vũ trang, người lao động và các tầng lớp nhân dân.
+          </p>
+          <p>
+            Nội dung cuộc thi tập trung vào các chủ đề thiết thực: Luật Dân sự, Luật Lao động, Luật An toàn giao thông,
+            phòng, chống tham nhũng và tiêu cực, an ninh mạng, cũng như các đạo luật mới có hiệu lực trong năm.
+            Cấu trúc đề thi được xây dựng bởi Hội đồng chuyên môn gồm các luật gia, giảng viên luật có nhiều năm kinh nghiệm.
+          </p>
+          <p>
+            Toàn bộ hệ thống thi được vận hành trực tuyến: thí sinh đăng ký bằng số CCCD, làm bài trên nền tảng
+            với thời gian đếm ngược chính xác từng giây, nhận kết quả chấm điểm tự động ngay sau khi nộp bài.
+            Dữ liệu của bạn được lưu trữ bảo mật, phục vụ tổng hợp và công bố kết quả ở từng hạng mục thi.
+          </p>
+        </div>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          <div class="w-11 h-11 rounded-xl bg-flag-50 text-flag-600 flex items-center justify-center text-xl">🏛️</div>
+          <h3 class="font-bold text-slate-900 mt-3">Đối tượng tham dự</h3>
+          <ul class="mt-2 text-sm text-slate-600 space-y-1.5 list-disc list-inside">
+            <li>Cán bộ, công chức, viên chức các cơ quan, đơn vị;</li>
+            <li>Đoàn viên, thanh niên, học sinh, sinh viên;</li>
+            <li>Người lao động và công dân trong độ tuổi theo quy định.</li>
+          </ul>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          <div class="w-11 h-11 rounded-xl bg-gold-400/20 text-gold-600 flex items-center justify-center text-xl">📋</div>
+          <h3 class="font-bold text-slate-900 mt-3">Điều kiện tham gia</h3>
+          <ul class="mt-2 text-sm text-slate-600 space-y-1.5 list-disc list-inside">
+            <li>Có thẻ CCCD còn hiệu lực;</li>
+            <li>Đăng ký đầy đủ, chính xác các trường thông tin;</li>
+            <li>Chấp hành nghiêm chỉnh thể lệ của Ban Tổ chức.</li>
+          </ul>
+        </div>
+        <div class="sm:col-span-2 bg-flag-600 rounded-2xl text-white p-5 star-pattern">
+          <h3 class="font-bold text-gold-300 uppercase text-sm tracking-widest">Nguyên tắc chấm điểm</h3>
+          <p class="mt-2 text-sm text-white/90 leading-relaxed">
+            Mỗi câu hỏi có một phương án trả lời đúng. Điểm bài thi = (số câu đúng ÷ tổng số câu) × 10,
+            làm tròn đến 2 chữ số thập phân. Hệ thống chấm điểm tự động trên máy chủ ngay khi thí sinh nộp bài
+            hoặc khi hết thời gian làm bài, đảm bảo công bằng tuyệt đối giữa các thí sinh.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THỂ LỆ ============ -->
+  <section id="the-le" class="bg-white border-y border-slate-100">
+    <div class="max-w-6xl mx-auto px-4 py-16">
+      <div class="text-center max-w-2xl mx-auto">
+        <p class="text-flag-600 font-bold uppercase tracking-widest text-xs">Thể lệ cuộc thi</p>
+        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-slate-900 mt-2">Bốn bước tham gia đơn giản</h2>
+        <p class="text-slate-500 text-sm mt-3">Toàn bộ quy trình được số hóa 100% — từ đăng ký đến nhận kết quả chỉ trong vài phút.</p>
+      </div>
+      <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="relative bg-[#FAF7F2] rounded-2xl p-6 border border-slate-100">
+          <div class="w-10 h-10 rounded-full bg-flag-600 text-white font-extrabold flex items-center justify-center">1</div>
+          <h3 class="font-bold text-slate-900 mt-4">Đăng ký tài khoản</h3>
+          <p class="text-sm text-slate-600 mt-2 leading-relaxed">Nhấn “Tham gia ngay”, khai báo đầy đủ CCCD, điện thoại, email, chức vụ và đơn vị công tác.</p>
+        </div>
+        <div class="relative bg-[#FAF7F2] rounded-2xl p-6 border border-slate-100">
+          <div class="w-10 h-10 rounded-full bg-flag-600 text-white font-extrabold flex items-center justify-center">2</div>
+          <h3 class="font-bold text-slate-900 mt-4">Đăng nhập hệ thống</h3>
+          <p class="text-sm text-slate-600 mt-2 leading-relaxed">Sử dụng số CCCD và mật khẩu bạn đã đăng ký để truy cập khu vực thi trực tuyến.</p>
+        </div>
+        <div class="relative bg-[#FAF7F2] rounded-2xl p-6 border border-slate-100">
+          <div class="w-10 h-10 rounded-full bg-flag-600 text-white font-extrabold flex items-center justify-center">3</div>
+          <h3 class="font-bold text-slate-900 mt-4">Làm bài thi trắc nghiệm</h3>
+          <p class="text-sm text-slate-600 mt-2 leading-relaxed">Chọn hạng mục, vào bài thi. Đồng hồ đếm ngược được đồng bộ chính xác với máy chủ.</p>
+        </div>
+        <div class="relative bg-[#FAF7F2] rounded-2xl p-6 border border-slate-100">
+          <div class="w-10 h-10 rounded-full bg-flag-600 text-white font-extrabold flex items-center justify-center">4</div>
+          <h3 class="font-bold text-slate-900 mt-4">Nộp bài &amp; nhận kết quả</h3>
+          <p class="text-sm text-slate-600 mt-2 leading-relaxed">Hệ thống chấm điểm tức thì, lưu kết quả vĩnh viễn và cập nhật lên bảng điểm các hạng mục.</p>
+        </div>
+      </div>
+      <div class="mt-8 bg-flag-50 border border-flag-100 rounded-2xl p-5 text-sm text-flag-800 leading-relaxed">
+        <b class="font-extrabold">Lưu ý:</b> Mỗi thí sinh có thể tham gia nhiều hạng mục thi. Trường hợp hết thời gian làm bài,
+        hệ thống sẽ tự động nộp bài dựa trên các câu trả lời đã hoàn thành. Kết quả được Ban Tổ chức tổng hợp làm căn cứ
+        trao giải theo từng hạng mục.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GIẢI THƯỞNG ============ -->
+  <section id="giai-thuong" class="max-w-6xl mx-auto px-4 py-16">
+    <div class="text-center max-w-2xl mx-auto">
+      <p class="text-flag-600 font-bold uppercase tracking-widest text-xs">Cơ cấu giải thưởng</p>
+      <h2 class="font-serif text-2xl sm:text-3xl font-bold text-slate-900 mt-2">Vinh danh các tập thể, cá nhân xuất sắc</h2>
+    </div>
+    <div class="mt-10 grid md:grid-cols-3 gap-5">
+      <div class="rounded-2xl bg-gradient-to-b from-flag-600 to-flag-800 text-white p-7 text-center shadow-soft relative overflow-hidden star-pattern">
+        <div class="text-4xl">🥇</div>
+        <h3 class="font-serif font-bold text-xl mt-3 text-gold-300">GIẢI NHẤT</h3>
+        <p class="text-3xl font-extrabold mt-2">01</p>
+        <p class="text-sm text-white/85 mt-1">Giải thưởng và Bằng khen của Ban Tổ chức</p>
+      </div>
+      <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-7 text-center">
+        <div class="text-4xl">🥈</div>
+        <h3 class="font-serif font-bold text-xl mt-3 text-slate-900">GIẢI NHÌ</h3>
+        <p class="text-3xl font-extrabold mt-2 text-flag-600">02</p>
+        <p class="text-sm text-slate-500 mt-1">Giải thưởng và Giấy chứng nhận thành tích</p>
+      </div>
+      <div class="rounded-2xl bg-white border border-slate-100 shadow-sm p-7 text-center">
+        <div class="text-4xl">🥉</div>
+        <h3 class="font-serif font-bold text-xl mt-3 text-slate-900">GIẢI BA</h3>
+        <p class="text-3xl font-extrabold mt-2 text-flag-600">03</p>
+        <p class="text-sm text-slate-500 mt-1">Giải thưởng và Giấy chứng nhận thành tích</p>
+      </div>
+    </div>
+    <p class="text-center text-xs text-slate-400 mt-6">
+      * Tùy ngân sách và quy mô thực tế, Ban Tổ chức có thể bổ sung giải thưởng tiện lợi cho các tập thể có số lượng tham gia đông nhất.
+    </p>
+  </section>
+
+  <!-- ============ TIN TỨC TUYÊN TRUYỀN ============ -->
+  <section id="tin-tuc" class="bg-white border-y border-slate-100">
+    <div class="max-w-6xl mx-auto px-4 py-16">
+      <div class="flex items-end justify-between flex-wrap gap-3">
+        <div>
+          <p class="text-flag-600 font-bold uppercase tracking-widest text-xs">Tin tức — Tuyên truyền</p>
+          <h2 class="font-serif text-2xl sm:text-3xl font-bold text-slate-900 mt-2">Pháp luật thiết yếu cùng bạn mỗi ngày</h2>
+        </div>
+        <a href="/login.html" class="text-sm font-semibold text-flag-600 hover:text-flag-800">Đăng ký dự thi →</a>
+      </div>
+      <div class="mt-8 grid md:grid-cols-3 gap-5">
+        <article class="group bg-[#FAF7F2] rounded-2xl border border-slate-100 overflow-hidden hover:shadow-soft transition">
+          <div class="h-36 bg-gradient-to-br from-flag-600 to-flag-800 star-pattern flex items-center justify-center">
+            <span class="text-5xl opacity-90">⚖️</span>
+          </div>
+          <div class="p-5">
+            <div class="flex items-center gap-2 text-[11px] uppercase tracking-wider">
+              <span class="bg-flag-50 text-flag-700 font-bold px-2 py-0.5 rounded">Pháp luật dân sự</span>
+              <span class="text-slate-400">01/10/2026</span>
+            </div>
+            <h3 class="font-bold text-slate-900 mt-2.5 leading-snug group-hover:text-flag-700 transition">Những điểm mới về hợp đồng điện tử mà người dân cần nắm rõ</h3>
+            <p class="text-sm text-slate-600 mt-2 leading-relaxed">Hợp đồng điện tử ngày càng phổ biến trong giao dịch. Bài viết làm rõ giá trị pháp lý, điều kiện có hiệu lực và những lưu ý về bảo mật khi ký kết trực tuyến.</p>
+          </div>
+        </article>
+        <article class="group bg-[#FAF7F2] rounded-2xl border border-slate-100 overflow-hidden hover:shadow-soft transition">
+          <div class="h-36 bg-gradient-to-br from-gold-500 to-flag-500 star-pattern flex items-center justify-center">
+            <span class="text-5xl opacity-90">🛡️</span>
+          </div>
+          <div class="p-5">
+            <div class="flex items-center gap-2 text-[11px] uppercase tracking-wider">
+              <span class="bg-flag-50 text-flag-700 font-bold px-2 py-0.5 rounded">An ninh mạng</span>
+              <span class="text-slate-400">18/09/2026</span>
+            </div>
+            <h3 class="font-bold text-slate-900 mt-2.5 leading-snug group-hover:text-flag-700 transition">Tự bảo vệ trước lừa đảo trực tuyến: nhận diện và xử lý kịp thời</h3>
+            <p class="text-sm text-slate-600 mt-2 leading-relaxed">Các chiêu thức lừa đảo qua điện thoại, mạng xã hội ngày càng tinh vi. Hãy trang bị cho mình 6 nguyên tắc vàng để bảo vệ tài sản và thông tin cá nhân.</p>
+          </div>
+        </article>
+        <article class="group bg-[#FAF7F2] rounded-2xl border border-slate-100 overflow-hidden hover:shadow-soft transition">
+          <div class="h-36 bg-gradient-to-br from-flag-800 to-slate-900 star-pattern flex items-center justify-center">
+            <span class="text-5xl opacity-90">🚦</span>
+          </div>
+          <div class="p-5">
+            <div class="flex items-center gap-2 text-[11px] uppercase tracking-wider">
+              <span class="bg-flag-50 text-flag-700 font-bold px-2 py-0.5 rounded">Giao thông</span>
+              <span class="text-slate-400">05/09/2026</span>
+            </div>
+            <h3 class="font-bold text-slate-900 mt-2.5 leading-snug group-hover:text-flag-700 transition">Quy định mới về mức xử phạt vi phạm giao thông cần biết</h3>
+            <p class="text-sm text-slate-600 mt-2 leading-relaxed">Từ mức phạt với hành vi vi phạm tốc độ đến quy định về nồng độ cồn — cập nhật nhanh các điểm mới giúp bạn tham gia giao thông an toàn, đúng pháp luật.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HỎI ĐÁP ============ -->
+  <section class="max-w-3xl mx-auto px-4 py-16">
+    <div class="text-center">
+      <p class="text-flag-600 font-bold uppercase tracking-widest text-xs">Hỏi đáp</p>
+      <h2 class="font-serif text-2xl sm:text-3xl font-bold text-slate-900 mt-2">Câu hỏi thường gặp</h2>
+    </div>
+    <div class="mt-8 space-y-3">
+      <details class="faq bg-white rounded-xl border border-slate-100 shadow-sm p-5" open>
+        <summary class="flex items-center justify-between font-semibold text-slate-900">
+          Việc đăng ký tham gia cuộc thi có mất phí không?
+          <span class="faq-chevron text-flag-600 transition-transform">▾</span>
+        </summary>
+        <p class="text-sm text-slate-600 mt-3 leading-relaxed">Hoàn toàn miễn phí. Toàn bộ quá trình đăng ký, làm bài và nhận kết quả đều không phát sinh bất kỳ chi phí nào. Ban Tổ chức không bao giờ thu phí qua bất kỳ kênh nào.</p>
+      </details>
+      <details class="faq bg-white rounded-xl border border-slate-100 shadow-sm p-5">
+        <summary class="flex items-center justify-between font-semibold text-slate-900">
+          Tôi quên mật khẩu thì làm thế nào?
+          <span class="faq-chevron text-flag-600 transition-transform">▾</span>
+        </summary>
+        <p class="text-sm text-slate-600 mt-3 leading-relaxed">Vui lòng liên hệ Ban Tổ chức qua thông tin liên hệ ở chân trang, cung cấp số CCCD và email đã đăng ký để được hỗ trợ đặt lại mật khẩu trong thời gian sớm nhất.</p>
+      </details>
+      <details class="faq bg-white rounded-xl border border-slate-100 shadow-sm p-5">
+        <summary class="flex items-center justify-between font-semibold text-slate-900">
+          Nếu giữa chừng mất kết nối mạng thì bài thi xử lý ra sao?
+          <span class="faq-chevron text-flag-600 transition-transform">▾</span>
+        </summary>
+        <p class="text-sm text-slate-600 mt-3 leading-relaxed">Thời gian làm bài được giám sát bởi máy chủ. Khi bạn đăng nhập lại và vào tiếp đề thi, hệ thống sẽ cho bạn thời gian còn lại tương ứng với lượt thi đang thực hiện. Trường hợp hết giờ, hệ thống tự động nộp bài theo các câu đã trả lời.</p>
+      </details>
+      <details class="faq bg-white rounded-xl border border-slate-100 shadow-sm p-5">
+        <summary class="flex items-center justify-between font-semibold text-slate-900">
+          Kết quả thi được công bố ở đâu và khi nào?
+          <span class="faq-chevron text-flag-600 transition-transform">▾</span>
+        </summary>
+        <p class="text-sm text-slate-600 mt-3 leading-relaxed">Kết quả từng lượt thi được hiển thị ngay sau khi nộp bài. Bảng điểm tổng hợp theo từng hạng mục được cập nhật liên tục trên trang quản trị của Ban Tổ chức và công bố định kỳ theo kế hoạch của cuộc thi.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============ CTA + FOOTER ============ -->
+  <section class="relative bg-gradient-to-r from-flag-700 to-flag-600 star-pattern text-white">
+    <div class="max-w-6xl mx-auto px-4 py-12 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div>
+        <h2 class="font-serif text-2xl sm:text-3xl font-bold">Sẵn sàng thử sức kiến thức pháp luật của bạn?</h2>
+        <p class="text-white/80 text-sm mt-2">Đăng ký chỉ mất 1 phút — kiến thức pháp luật là hành trang suốt đời.</p>
+      </div>
+      <a href="/login.html" class="shrink-0 inline-flex items-center gap-2 bg-gold-400 hover:bg-gold-300 text-flag-900 font-extrabold text-base px-8 py-3.5 rounded-xl shadow-lg transition-transform hover:-translate-y-0.5">
+        ★ Tham gia ngay
+      </a>
+    </div>
+  </section>
+
+  <footer class="bg-slate-900 text-slate-300">
+    <div class="max-w-6xl mx-auto px-4 py-12 grid md:grid-cols-3 gap-8">
+      <div>
+        <div class="flex items-center gap-2.5">
+          <span class="w-9 h-9 rounded-lg bg-flag-600 flex items-center justify-center text-gold-400 text-xl">★</span>
+          <span class="font-extrabold text-white uppercase text-sm leading-tight">Cuộc thi Trắc nghiệm<br /><span class="text-slate-400 font-medium normal-case text-xs">Tìm hiểu pháp luật trực tuyến 2026</span></span>
+        </div>
+        <p class="text-xs text-slate-400 mt-4 leading-relaxed">
+          Hệ thống thi trực tuyến siêu nhẹ. Dữ liệu thí sinh được lưu trữ bảo mật trên hạ tầng đám mây Google Drive
+          với cơ chế cache trong bộ nhớ và đồng bộ tự động.
+        </p>
+      </div>
+      <div>
+        <h4 class="text-white font-bold text-sm uppercase tracking-wider">Liên hệ Ban Tổ chức</h4>
+        <ul class="mt-4 space-y-2 text-sm text-slate-400">
+          <li>📍 Ban Tổ chức Cuộc thi (địa chỉ trụ sở)</li>
+          <li>✉️ bantochuc@cuocthi.example.vn</li>
+          <li>☎️ 1900 0000 (giờ hành chính các ngày làm việc)</li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-bold text-sm uppercase tracking-wider">Liên kết nhanh</h4>
+        <ul class="mt-4 space-y-2 text-sm">
+          <li><a href="/login.html" class="text-slate-400 hover:text-gold-300 transition">Đăng ký / Đăng nhập</a></li>
+          <li><a href="/quiz.html" class="text-slate-400 hover:text-gold-300 transition">Vào khu vực thi</a></li>
+          <li><a href="#the-le" class="text-slate-400 hover:text-gold-300 transition">Thể lệ cuộc thi</a></li>
+          <li><a href="#giai-thuong" class="text-slate-400 hover:text-gold-300 transition">Cơ cấu giải thưởng</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-white/10">
+      <p class="max-w-6xl mx-auto px-4 py-4 text-center text-xs text-slate-500">
+        © 2026 Ban Tổ chức Cuộc thi Trắc nghiệm Tìm hiểu Pháp luật trực tuyến. Mọi quyền được bảo lưu.
+      </p>
+    </div>
+  </footer>
+
+  <script src="/assets/js/common.js"></script>
+  <script src="/assets/js/home.js"></script>
+</body>
+</html>

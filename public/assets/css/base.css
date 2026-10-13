@@ -1,0 +1,56 @@
+/* base.css — Phong cách chung bổ trợ cho Tailwind CDN (chỉ vài trăm byte). */
+
+/* Băng rôn cổ động chạy ngang */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: marquee 28s linear infinite;
+}
+.marquee-wrap:hover .marquee-track { animation-play-state: paused; }
+
+/* Hoa văn nền ngôi sao (dùng cho hero / banner đỏ) */
+.star-pattern {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><path d='M60 14l9.2 24.6 26.2 1.1-20.5 16.3 7.2 25.3L60 66.8 37.9 81.3l7.2-25.3-20.5-16.3 26.2-1.1z' fill='%23ffffff' fill-opacity='0.07'/></svg>");
+}
+
+/* Đồng hồ đếm ngược khi sắp hết giờ */
+@keyframes pulse-danger {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.timer-danger {
+  animation: pulse-danger 1s ease-in-out infinite;
+}
+
+/* Vòng điểm số */
+.score-ring {
+  background: conic-gradient(#c8102e calc(var(--pct, 0) * 1%), #f3f4f6 0);
+}
+
+/* Input focus thống nhất */
+.field {
+  width: 100%;
+  border-radius: 0.625rem;
+  border: 1px solid #e5e7eb;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.925rem;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field:focus {
+  border-color: #c8102e;
+  box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.12);
+}
+
+/* Chi tiết FAQ */
+details.faq > summary { list-style: none; cursor: pointer; }
+details.faq > summary::-webkit-details-marker { display: none; }
+details.faq[open] .faq-chevron { transform: rotate(180deg); }
+
+/* Thanh cuộn mảnh */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 8px; }

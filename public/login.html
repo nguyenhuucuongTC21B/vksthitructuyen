@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đăng nhập / Đăng ký — Cuộc thi Trắc nghiệm Pháp luật 2026</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23C8102E'/><text x='50' y='72' font-size='62' text-anchor='middle' fill='%23FFCD00'>★</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Lora:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            flag: { 50:'#FEF2F2', 100:'#FEE2E2', 500:'#C8102E', 600:'#B00D28', 700:'#8F0A20', 800:'#6B0718', 900:'#4A0511' },
+            gold: { 300:'#FFDE6B', 400:'#F9C823', 500:'#F0B429' },
+          },
+          fontFamily: { sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'], serif: ['Lora', 'Georgia', 'serif'] },
+          boxShadow: { soft: '0 12px 40px -12px rgba(0,0,0,.18)' },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="/assets/css/base.css" />
+</head>
+<body class="font-sans bg-[#FAF7F2] text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <main class="flex-1 grid lg:grid-cols-[1fr,1.05fr]">
+    <!-- ============ PANEL TUYÊN TRUYỀN ============ -->
+    <section class="relative overflow-hidden bg-gradient-to-br from-flag-700 via-flag-600 to-flag-800 text-white star-pattern flex flex-col justify-center px-8 py-12 lg:px-14">
+      <div class="absolute -top-20 -left-20 w-80 h-80 rounded-full bg-gold-400/10 blur-3xl"></div>
+      <div class="relative max-w-md mx-auto lg:mx-0">
+        <a href="/" class="inline-flex items-center gap-2 text-gold-300 text-sm font-semibold hover:text-gold-400 transition">← Về trang chủ</a>
+        <div class="mt-6 text-gold-400 text-6xl">★</div>
+        <h1 class="font-serif font-bold text-3xl leading-snug mt-4">
+          Cuộc thi Trắc nghiệm<br />TÌM HIỂU PHÁP LUẬT<br />TRỰC TUYẾN 2026
+        </h1>
+        <p class="text-white/80 text-sm leading-relaxed mt-4">
+          Đăng ký một tài khoản duy nhất để tham gia toàn bộ các hạng mục thi, tra cứu kết quả
+          và nhận vinh danh từ Ban Tổ chức. Thông tin của bạn được bảo mật tuyệt đối.
+        </p>
+        <ul class="mt-6 space-y-3 text-sm">
+          <li class="flex items-center gap-3"><span class="w-7 h-7 rounded-full bg-gold-400 text-flag-900 font-extrabold flex items-center justify-center text-xs shrink-0">01</span> Đăng ký bằng số CCCD — nhanh gọn, không giấy tờ</li>
+          <li class="flex items-center gap-3"><span class="w-7 h-7 rounded-full bg-gold-400 text-flag-900 font-extrabold flex items-center justify-center text-xs shrink-0">02</span> Chấm điểm tự động, công bằng theo thang điểm 10</li>
+          <li class="flex items-center gap-3"><span class="w-7 h-7 rounded-full bg-gold-400 text-flag-900 font-extrabold flex items-center justify-center text-xs shrink-0">03</span> Kết quả lưu trữ vĩnh viễn trên hạ tầng Google Drive</li>
+        </ul>
+        <div class="mt-8 border-t border-white/15 pt-4 text-xs text-white/60">
+          Nếu gặp khó khăn khi đăng nhập, liên hệ Ban Tổ chức: <b class="text-gold-300">bantochuc@cuocthi.example.vn</b>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FORM ============ -->
+    <section class="flex items-center justify-center px-4 py-12">
+      <div class="w-full max-w-md">
+        <div class="flex bg-slate-100 rounded-xl p-1 mb-6" role="tablist">
+          <button id="tab-login" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition bg-white text-flag-700 shadow" onclick="switchTab('login')">Đăng nhập</button>
+          <button id="tab-register" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition text-slate-500" onclick="switchTab('register')">Đăng ký thí sinh</button>
+        </div>
+
+        <!-- ---------- Đăng nhập ---------- -->
+        <form id="form-login" class="bg-white rounded-2xl border border-slate-100 shadow-soft p-7 space-y-4" novalidate>
+          <div>
+            <h2 class="font-serif text-xl font-bold text-slate-900">Đăng nhập hệ thống</h2>
+            <p class="text-xs text-slate-500 mt-1">Sử dụng số CCCD và mật khẩu đã đăng ký.</p>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="li-cccd">Số CCCD <span class="text-red-500">*</span></label>
+            <input id="li-cccd" class="field" type="text" inputmode="numeric" maxlength="12" placeholder="12 chữ số" autocomplete="username" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="li-password">Mật khẩu <span class="text-red-500">*</span></label>
+            <input id="li-password" class="field" type="password" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+          <p id="li-error" class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></p>
+          <button type="submit" id="li-submit" class="w-full bg-flag-600 hover:bg-flag-700 text-white font-bold py-3 rounded-xl transition disabled:opacity-60 disabled:cursor-not-allowed">
+            ★ Đăng nhập
+          </button>
+          <p class="text-xs text-center text-slate-400">Chưa có tài khoản? <button type="button" class="text-flag-600 font-semibold" onclick="switchTab('register')">Đăng ký ngay</button></p>
+        </form>
+
+        <!-- ---------- Đăng ký ---------- -->
+        <form id="form-register" class="hidden bg-white rounded-2xl border border-slate-100 shadow-soft p-7 space-y-3.5" novalidate>
+          <div>
+            <h2 class="font-serif text-xl font-bold text-slate-900">Đăng ký thí sinh</h2>
+            <p class="text-xs text-slate-500 mt-1">Vui lòng khai báo <b>đầy đủ và chính xác</b> toàn bộ thông tin bắt buộc (<span class="text-red-500">*</span>).</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="col-span-2">
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="rg-cccd">Số CCCD <span class="text-red-500">*</span></label>
+              <input id="rg-cccd" class="field" type="text" inputmode="numeric" maxlength="12" placeholder="12 chữ số trên thẻ CCCD" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="rg-phone">Số điện thoại <span class="text-red-500">*</span></label>
+              <input id="rg-phone" class="field" type="tel" maxlength="10" placeholder="09xxxxxxxx" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="rg-email">Email <span class="text-red-500">*</span></label>
+              <input id="rg-email" class="field" type="email" placeholder="ten@donvi.vn" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="rg-position">Chức vụ <span class="text-red-500">*</span></label>
+              <input id="rg-position" class="field" type="text" placeholder="VD: Chuyên viên" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="rg-unit">Đơn vị công tác <span class="text-red-500">*</span></label>
+              <input id="rg-unit" class="field" type="text" placeholder="VD: UBND phường A" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="rg-password">Mật khẩu <span class="text-red-500">*</span></label>
+              <input id="rg-password" class="field" type="password" placeholder="Từ 6 ký tự trở lên" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5" for="rg-confirm">Nhập lại mật khẩu <span class="text-red-500">*</span></label>
+              <input id="rg-confirm" class="field" type="password" placeholder="••••••••" />
+            </div>
+          </div>
+          <label class="flex items-start gap-2 text-xs text-slate-500 pt-1">
+            <input id="rg-agree" type="checkbox" class="mt-0.5 accent-red-700" />
+            <span>Tôi cam kết khai báo thông tin chính xác và đồng ý tuân theo thể lệ cuộc thi của Ban Tổ chức.</span>
+          </label>
+          <p id="rg-error" class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></p>
+          <button type="submit" id="rg-submit" class="w-full bg-flag-600 hover:bg-flag-700 text-white font-bold py-3 rounded-xl transition disabled:opacity-60 disabled:cursor-not-allowed">
+            ★ Đăng ký tham gia
+          </button>
+          <p class="text-xs text-center text-slate-400">Đã có tài khoản? <button type="button" class="text-flag-600 font-semibold" onclick="switchTab('login')">Đăng nhập</button></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script src="/assets/js/common.js"></script>
+  <script src="/assets/js/auth.js"></script>
+</body>
+</html>

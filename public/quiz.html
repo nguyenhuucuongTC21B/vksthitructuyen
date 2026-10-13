@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Khu vực thi — Cuộc thi Trắc nghiệm Pháp luật 2026</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23C8102E'/><text x='50' y='72' font-size='62' text-anchor='middle' fill='%23FFCD00'>★</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Lora:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            flag: { 50:'#FEF2F2', 100:'#FEE2E2', 500:'#C8102E', 600:'#B00D28', 700:'#8F0A20', 800:'#6B0718', 900:'#4A0511' },
+            gold: { 300:'#FFDE6B', 400:'#F9C823', 500:'#F0B429' },
+          },
+          fontFamily: { sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'], serif: ['Lora', 'Georgia', 'serif'] },
+          boxShadow: { soft: '0 12px 40px -12px rgba(0,0,0,.18)' },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="/assets/css/base.css" />
+</head>
+<body class="font-sans bg-[#FAF7F2] text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- ============ HEADER ============ -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+      <a href="/" class="flex items-center gap-3 min-w-0">
+        <span class="w-10 h-10 rounded-lg bg-flag-500 flex items-center justify-center text-gold-400 text-2xl leading-none shrink-0">★</span>
+        <span class="min-w-0">
+          <span class="block font-extrabold text-flag-700 leading-tight uppercase text-sm sm:text-base truncate">Khu vực thi trực tuyến</span>
+          <span class="block text-[11px] sm:text-xs text-slate-500 leading-tight">Chúc thí sinh làm bài tốt!</span>
+        </span>
+      </a>
+      <div id="header-user" class="flex items-center gap-2 text-sm"></div>
+    </div>
+  </header>
+
+  <main class="flex-1 w-full max-w-6xl mx-auto px-4 py-8">
+
+    <!-- ============ VIEW 1: DANH SÁCH ĐỀ THI ============ -->
+    <section id="view-list" class="hidden">
+      <div class="flex items-end justify-between flex-wrap gap-3">
+        <div>
+          <h1 class="font-serif text-2xl sm:text-3xl font-bold text-slate-900">Danh sách đề thi — các hạng mục</h1>
+          <p class="text-sm text-slate-500 mt-1">Chọn một hạng mục để bắt đầu lượt thi. Thời gian làm bài được giám sát bởi máy chủ.</p>
+        </div>
+        <span id="user-chip" class="text-xs bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-500"></span>
+      </div>
+      <div id="exam-grid" class="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="col-span-full text-center text-slate-400 py-16">Đang tải danh sách đề thi...</div>
+      </div>
+    </section>
+
+    <!-- ============ VIEW 2: LÀM BÀI THI ============ -->
+    <section id="view-quiz" class="hidden">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="min-w-0">
+          <span id="q-category" class="inline-block bg-flag-50 text-flag-700 text-[11px] font-bold uppercase tracking-wider px-2 py-1 rounded"></span>
+          <h1 id="q-title" class="font-serif text-xl sm:text-2xl font-bold text-slate-900 mt-1.5 truncate"></h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <div id="timer" class="flex items-center gap-2 bg-flag-600 text-white font-extrabold text-lg px-4 py-2.5 rounded-xl shadow tabular-nums">
+            <span class="text-sm font-medium opacity-80">⏱</span><span id="timer-text">--:--</span>
+          </div>
+          <button id="btn-submit-top" class="bg-gold-500 hover:bg-gold-400 text-flag-900 font-extrabold px-5 py-2.5 rounded-xl shadow transition">Nộp bài</button>
+        </div>
+      </div>
+
+      <div class="mt-6 grid lg:grid-cols-[1fr,260px] gap-6 items-start">
+        <!-- Câu hỏi -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sm:p-8">
+          <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div id="progress-bar" class="h-full bg-flag-500 transition-all duration-300" style="width:0%"></div>
+          </div>
+          <p id="q-counter" class="text-xs font-bold uppercase tracking-widest text-slate-400 mt-4">Câu 1/10</p>
+          <p id="q-text" class="font-serif text-lg sm:text-xl font-semibold text-slate-900 mt-2 leading-relaxed">—</p>
+          <div id="q-options" class="mt-6 space-y-3"></div>
+          <div class="mt-8 flex items-center justify-between">
+            <button id="btn-prev" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">← Câu trước</button>
+            <button id="btn-next" class="px-5 py-2.5 rounded-xl bg-flag-600 hover:bg-flag-700 text-white font-semibold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed">Câu sau →</button>
+          </div>
+        </div>
+
+        <!-- Bảng câu hỏi -->
+        <aside class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 lg:sticky lg:top-24">
+          <h3 class="font-bold text-slate-900 text-sm uppercase tracking-wider">Bảng câu hỏi</h3>
+          <p class="text-xs text-slate-400 mt-1">Đã trả lời <b id="answered-count" class="text-flag-600">0</b>/<span id="total-count">0</span> câu</p>
+          <div id="palette" class="mt-4 grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-5 gap-2"></div>
+          <button id="btn-submit-side" class="mt-5 w-full bg-gold-500 hover:bg-gold-400 text-flag-900 font-extrabold py-3 rounded-xl transition">Nộp bài thi</button>
+          <p class="text-[11px] text-slate-400 mt-3 leading-relaxed">Hết giờ hệ thống sẽ tự động nộp bài theo các câu đã trả lời.</p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ VIEW 3: KẾT QUẢ ============ -->
+    <section id="view-result" class="hidden max-w-xl mx-auto">
+      <div class="bg-white rounded-3xl border border-slate-100 shadow-soft p-8 sm:p-10 text-center">
+        <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-3xl mx-auto">✓</div>
+        <h1 class="font-serif text-2xl font-bold text-slate-900 mt-4">Đã nộp bài thành công!</h1>
+        <p class="text-sm text-slate-500 mt-1">Kết quả của bạn đã được lưu vĩnh viễn trên hệ thống.</p>
+        <div class="mt-7 flex items-center justify-center gap-6">
+          <div class="relative w-36 h-36">
+            <div class="score-ring absolute inset-0 rounded-full" id="score-ring" style="--pct:0"></div>
+            <div class="absolute inset-2.5 bg-white rounded-full flex flex-col items-center justify-center">
+              <span id="r-score" class="text-3xl font-extrabold text-flag-600">0</span>
+              <span class="text-[10px] uppercase tracking-widest text-slate-400">điểm / 10</span>
+            </div>
+          </div>
+          <div class="text-left space-y-2.5 text-sm">
+            <p class="text-slate-500">Số câu đúng: <b id="r-correct" class="text-slate-900">—</b></p>
+            <p class="text-slate-500">Tổng số câu: <b id="r-total" class="text-slate-900">—</b></p>
+            <p class="text-slate-500">Thời gian làm bài: <b id="r-duration" class="text-slate-900">—</b></p>
+          </div>
+        </div>
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
+          <a href="/quiz.html" class="bg-flag-600 hover:bg-flag-700 text-white font-bold px-6 py-3 rounded-xl transition">Vào thi hạng mục khác</a>
+          <a href="/" class="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition">Về trang chủ</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ MODAL XÁC NHẬN NỘP BÀI ============ -->
+  <div id="modal-submit" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-soft max-w-sm w-full p-6">
+      <h3 class="font-serif text-lg font-bold text-slate-900">Xác nhận nộp bài?</h3>
+      <p id="modal-submit-detail" class="text-sm text-slate-600 mt-2 leading-relaxed"></p>
+      <p class="text-xs text-red-500 mt-2">Sau khi nộp bài, bạn không thể thay đổi câu trả lời.</p>
+      <div class="mt-5 flex gap-3">
+        <button onclick="closeModal('modal-submit')" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50">Quay lại làm bài</button>
+        <button id="btn-confirm-submit" class="flex-1 px-4 py-2.5 rounded-xl bg-flag-600 hover:bg-flag-700 text-white font-bold text-sm">Xác nhận nộp bài</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/js/common.js"></script>
+  <script src="/assets/js/quiz.js"></script>
+</body>
+</html>
