@@ -645,6 +645,505 @@ const SET2_QUESTIONS = [
   ], 2),
 ];
 
+/* ==================== BỘ ĐỀ SỐ 3 — 50 CÂU ==================== */
+const SET3_QUESTIONS = [
+// ---- MỤC A: NHẬN BIẾT — CHUYỂN ĐỔI SỐ CƠ BẢN (Câu 1–17) ----
+q('Khái niệm "Chuyển đổi số" (Digital Transformation) được hiểu đầy đủ và chính xác nhất là gì?', [
+'Là việc mua sắm thêm nhiều máy tính và thiết bị phần cứng hiện đại cho cơ quan.',
+'Là việc số hóa văn bản giấy tờ sang file dạng PDF để lưu trữ nội bộ.',
+'Là quá trình thay đổi tổng thể và toàn diện của cá nhân, tổ chức về cách sống, cách làm việc và phương thức sản xuất dựa trên các công nghệ số.',
+'Là việc cài đặt các phần mềm diệt virus bản quyền trên máy tính cá nhân.',
+], 2),
+q('Trong các thành phần sau đây, đâu là "trung tâm", là mục tiêu phục vụ cốt lõi của tiến trình xây dựng Chính quyền số và Chuyển đổi số quốc gia?', [
+'Các doanh nghiệp cung cấp giải pháp hạ tầng phần cứng mạng.',
+'Người dân và doanh nghiệp.',
+'Các hệ thống máy chủ lưu trữ dữ liệu tập trung.',
+'Đội ngũ chuyên gia lập trình và quản trị hệ thống.',
+], 1),
+q('Hành động nào sau đây được phân loại vào bước "Số hóa thông tin" (Digitization) – mức độ cơ bản nhất của chuyển đổi số?', [
+'Sử dụng trí tuệ nhân tạo (AI) để phân tích tự động xu hướng dữ liệu.',
+'Thay đổi hoàn toàn quy trình tiếp nhận hồ sơ từ trực tiếp sang 100% môi trường mạng.',
+'Dùng máy quét (Scanner) hoặc điện thoại thông minh để chụp, quét một văn bản giấy rồi lưu thành tệp tin trên máy tính.',
+'Xây dựng kho dữ liệu dùng chung kết nối thông suốt giữa các bộ ban ngành.',
+], 2),
+q('Nền tảng ứng dụng nào sau đây đóng vai trò là Định danh điện tử quốc gia của Việt Nam, giúp người dân thực hiện các thủ tục hành chính không cần mang theo giấy tờ vật lý?', [
+'Zalo.',
+'VNeID.',
+'VssID.',
+'PC-Covid.',
+], 1),
+q('Mô hình điện toán nào cho phép người dùng truy cập, sử dụng tài nguyên phần mềm, lưu trữ dữ liệu mọi lúc mọi nơi thông qua kết nối Internet mà không cần tự duy trì máy chủ vật lý?', [
+'Điện toán cục bộ (Local Computing).',
+'Điện toán đám mây (Cloud Computing).',
+'Mạng lưu trữ gắn kèm cục bộ (NAS).',
+'Hệ thống lưu trữ dữ liệu phẳng JSON.',
+], 1),
+q('Trong xu thế phát triển công nghệ hiện nay, thuật ngữ "Dữ liệu lớn" (Big Data) dùng để chỉ những tập hợp dữ liệu có đặc trưng nổi bật nào?', [
+'Dữ liệu có dung lượng rất nhỏ và dễ dàng xử lý bằng phần mềm văn phòng Excel.',
+'Dữ liệu có khối lượng cực lớn, tốc độ sinh trưởng nhanh và chủng loại rất đa dạng, vượt quá khả năng xử lý của các công cụ truyền thống.',
+'Dữ liệu chỉ bao gồm các file văn bản thuần không có hình ảnh hay video.',
+'Dữ liệu được khóa bảo mật tuyệt đối bằng thuật toán mã hóa đối xứng AES.',
+], 1),
+q('Mục tiêu cơ bản của việc triển khai "Cổng dịch vụ công trực tuyến" tại các cơ quan nhà nước là gì?', [
+'Để bán các sản phẩm phần mềm công nghệ cho người dân kiếm lợi nhuận.',
+'Giúp người dân, doanh nghiệp có thể nộp hồ sơ, thủ tục hành chính từ xa qua Internet, tăng tính minh bạch và tiết kiệm chi phí, thời gian.',
+'Thay thế hoàn toàn vai trò quản lý điều hành của các cán bộ công chức.',
+'Tự động xóa bỏ toàn bộ dữ liệu lịch sử nộp hồ sơ cũ của công dân.',
+], 1),
+q('Khi nói về chuyển đổi số, yếu tố nào sau đây đóng vai trò quyết định sự thành bại cao nhất của một tổ chức?', [
+'Ngân sách kinh phí mua sắm thiết bị phần cứng công nghệ.',
+'Nhận thức, tư duy và sự quyết tâm thay đổi của con người, đặc biệt là người đứng đầu.',
+'Tốc độ đường truyền băng thông Internet của nhà mạng.',
+'Số lượng phần mềm mã nguồn mở được cài đặt vào hệ thống.',
+], 1),
+q('Khái niệm "Kinh tế số" được hiểu là các hoạt động kinh tế dựa trên nền tảng nào sau đây?', [
+'Hoạt động sản xuất nông nghiệp truyền thống tại nông thôn.',
+'Công nghệ số và nền tảng dữ liệu số.',
+'Việc giao dịch mua bán hàng hóa bằng tiền mặt trực tiếp tại các chợ.',
+'Các ngành công nghiệp khai thác tài nguyên thiên nhiên thô.',
+], 1),
+q('Hành vi nào sau đây của công dân góp phần tích cực vào mục tiêu xây dựng "Xã hội số"?', [
+'Từ chối tiếp cận các thiết bị công nghệ và điện thoại thông minh.',
+'Tích cực học hỏi kỹ năng số, sử dụng thanh toán không tiền mặt và thực hiện dịch vụ công trực tuyến.',
+'Chỉ chia sẻ các thông tin giải trí chưa được kiểm chứng lên mạng xã hội.',
+'Sử dụng chung một mật khẩu đơn giản cho tất cả các tài khoản cá nhân.',
+], 1),
+q('"Chính phủ số" khác với "Chính phủ điện tử" ở điểm cốt lõi nào sau đây?', [
+'Chính phủ số không sử dụng mạng Internet để kết nối các cơ quan.',
+'Chính phủ điện tử tập trung vào số hóa quy trình cũ; Chính phủ số tập trung vào thay đổi mô hình hoạt động dựa trên dữ liệu và công nghệ số để tạo ra dịch vụ mới.',
+'Chính phủ điện tử chỉ dùng máy tính chạy hệ điều hành Windows cũ.',
+'Chính phủ số bắt buộc người dân phải biết lập trình mã nguồn Backend.',
+], 1),
+q('Trong công cuộc chuyển đổi số, "Hạ tầng số" quốc gia bao gồm các thành phần cốt lõi nào?', [
+'Hệ thống đường giao thông và các tòa nhà trụ sở làm việc.',
+'Hạ tầng viễn thông băng rộng, hạ tầng điện toán đám mây và các nền tảng dữ liệu, danh tính số.',
+'Hệ thống lưới điện quốc gia và các nhà máy thủy điện.',
+'Mạng lưới các cửa hàng kinh doanh thiết bị điện tử bán lẻ.',
+], 1),
+q('Công nghệ nào cho phép máy tính tự học hỏi từ dữ liệu quá khứ để đưa ra các dự báo, quyết định hoặc tự động thực hiện các tác vụ thông minh thay con người?', [
+'Mã hóa file đối xứng.',
+'Trí tuệ nhân tạo và Học máy (AI / Machine Learning).',
+'Cơ chế khóa luồng hàng đợi dữ liệu Mutex.',
+'Chuyển đổi văn bản thuần sang chuỗi ký tự một dòng.',
+], 1),
+q('Mã QR (QR Code) được ứng dụng rộng rãi trong chuyển đổi số đời sống hàng ngày nhằm mục đích chính là gì?', [
+'Thay thế cho việc kết nối mạng WiFi và mạng LAN truyền thống.',
+'Mã hóa thông tin thành ma trận điểm hai chiều giúp các thiết bị di động quét và truy cập nhanh thông tin, liên kết hoặc thực hiện thanh toán.',
+'Tự động tăng dung lượng bộ nhớ RAM của điện thoại di động.',
+'Chặn toàn bộ các cuộc gọi và tin nhắn lừa đảo từ số lạ.',
+], 1),
+q('Cơ sở dữ liệu quốc gia về Dân cư do bộ ban ngành nào chủ trì xây dựng, đóng vai trò là dữ liệu gốc phục vụ chuyển đổi số?', [
+'Bộ Thông tin và Truyền thông.',
+'Bộ Công an.',
+'Bộ Tư pháp.',
+'Bộ Khoa học và Công nghệ.',
+], 1),
+q('Khi thực hiện thanh toán không dùng tiền mặt qua ứng dụng Ngân hàng số, phương thức quét mã nào sau đây đang được chuẩn hóa toàn quốc?', [
+'Mã vạch một chiều (Barcode).',
+'Mã VietQR.',
+'Mã ký tự Base64 một dòng.',
+], 1),
+q('Khái niệm "Công dân số" (Digital Citizen) yêu cầu cá nhân cần có năng lực tối thiểu nào?', [
+'Năng lực viết mã nguồn ứng dụng bằng các ngôn ngữ Node.js hoặc PHP.',
+'Năng lực truy cập, sử dụng công nghệ số một cách an toàn, trách nhiệm, tuân thủ pháp luật và chuẩn mực đạo đức trên môi trường số.',
+'Sở hữu ít nhất 3 chiếc máy tính cấu hình cao tại nhà.',
+'Khai thác thành công các lỗi cấu hình bảo mật hệ thống web.',
+], 1),
+// ---- MỤC B: THÔNG HIỂU & ÁP DỤNG — KỸ NĂNG SỐ THIẾT YẾU (Câu 18–40) ----
+q('Khi nộp hồ sơ dịch vụ công trực tuyến, tại sao hệ thống thường khuyến cáo công dân cung cấp tệp tin văn bản đã ký số (hoặc ký điện tử)?', [
+'Để làm giảm dung lượng bộ nhớ lưu trữ file dữ liệu phẳng của server.',
+'Để đảm bảo tính xác thực của người ký, chống chối bỏ trách nhiệm và phát hiện nếu nội dung file bị chỉnh sửa trái phép sau khi ký.',
+'Vì hệ thống máy chủ không thể đọc được các file tài liệu dạng chữ thuần.',
+'Nhằm mục đích kích hoạt tính năng tự động chấm điểm hồ sơ công dân.',
+], 1),
+q('Hành vi nào sau đây áp dụng đúng kỹ năng quản lý dữ liệu số cá nhân một cách khoa học trên môi trường đám mây?', [
+'Lưu tất cả các file ảnh, văn bản vào một thư mục chung không đặt tên.',
+'Sắp xếp file theo cấu trúc thư mục rõ ràng (năm, loại công việc), đặt tên file gợi nhớ, định kỳ xóa bỏ dữ liệu rác không còn giá trị.',
+'Chia sẻ quyền "Editor" công khai cho bất kỳ ai có đường link truy cập tài nguyên.',
+'Đặt mật khẩu cho mọi file giống hệt với tên đăng nhập tài khoản email.',
+], 1),
+q('Khi sử dụng ứng dụng VNeID mức độ 2, người dân có thể dùng thông tin hiển thị trên ứng dụng này để thay thế cho giấy tờ vật lý nào khi làm thủ tục tại sân bay?', [
+'Thẻ bảo hiểm y tế.',
+'Căn cước công dân (hoặc Hộ chiếu).',
+'Giấy khai sinh bản gốc.',
+'Giấy phép lái xe hạng A1.',
+], 1),
+q('Để chia sẻ một tài liệu văn bản trên Google Drive cho đồng nghiệp phối hợp sửa nội dung cùng lúc, bạn nên cấp quyền truy cập ở mức độ nào là phù hợp nhất?', [
+'Viewer (Người xem).',
+'Commenter (Người bình luận).',
+'Editor (Người chỉnh sửa).',
+'Chủ sở hữu hệ thống dữ liệu phẳng.',
+], 2),
+q('Chữ ký số (Digital Signature) hoạt động dựa trên cặp khóa bảo mật nào để đảm bảo tính xác thực toàn vẹn?', [
+'Khóa đối xứng AES và chuỗi Base64.',
+'Khóa bí mật (Private Key) để ký và Khóa công khai (Public Key) để xác thực.',
+'Khóa logic XOR và hàm băm mật khẩu MD5.',
+'Khóa hệ thống của bot Google Drive API.',
+], 1),
+q('Khi nhận thấy một file tài liệu trên máy tính có đuôi mở rộng lạ là .xlsx.exe hoặc .pdf.exe, bạn nên xử lý như thế nào?', [
+'Bấm đúp chuột để mở file ngay vì đây là tệp tin văn bản văn phòng.',
+'Tuyệt đối không mở file, tiến hành xóa file ngay lập tức vì đây có khả năng cao là mã độc lồng đuôi giả mạo file tài liệu.',
+'Đổi tên file xóa chữ .exe đi rồi tiếp tục click mở bình thường.',
+'Gửi file này qua email cho toàn bộ mọi người trong cơ quan cùng xem.',
+], 1),
+q('Nền tảng học trực tuyến mở (MOOCs) mang lại lợi ích lớn nhất nào cho cán bộ công chức trong công tác bồi dưỡng kỹ năng số?', [
+'Tự động làm hộ bài thi trắc nghiệm của học viên khi đến hạn.',
+'Cho phép tiếp cận kho bài giảng chất lượng cao, tự học mọi lúc mọi nơi theo tốc độ cá nhân, tiết kiệm chi phí đi lại.',
+'Cấp chứng chỉ tốt nghiệp tự động mà không cần tham gia thi đánh giá.',
+'Thay đổi toàn bộ cấu trúc file dữ liệu của hệ quản trị cơ sở dữ liệu.',
+], 1),
+q('Khi làm việc trên môi trường mạng, hành vi nào thể hiện kỹ năng giao tiếp văn minh, tuân thủ Luật An ninh mạng và Bộ quy tắc ứng xử trên mạng xã hội?', [
+'Sử dụng tài khoản ẩn danh để đi bình luận xúc phạm, bôi nhọ uy tín người khác.',
+'Chỉ chia sẻ các thông tin rõ nguồn gốc từ cơ quan chính thống, sử dụng ngôn từ lịch sự, không kích động bạo lực hay lan truyền tin giả.',
+'Sao chép toàn bộ bài viết của người khác về trang cá nhân và tự nhận là của mình.',
+'Tự động thêm bạn bè vào các nhóm quảng cáo kinh doanh khi chưa được sự đồng ý.',
+], 1),
+q('Hành vi "Thanh toán bằng quét mã QR tĩnh" dán tại quầy hàng tiềm ẩn rủi ro lừa đảo công nghệ gì nếu người mua lơ là không kiểm tra?', [
+'Hacker tự động hack chiếm quyền điều khiển điện thoại thông minh qua camera.',
+'Kẻ gian lén lút dán đè một mã QR khác chứa tài khoản của họ lên trên mã QR thật của cửa hàng để chiếm đoạt tiền chuyển khoản.',
+'Điện thoại của người mua tự động sụt giảm dung lượng lưu trữ file dữ liệu.',
+'Hệ thống mạng WiFi của cửa hàng sẽ bị sập do quá tải yêu cầu giao dịch.',
+], 1),
+q('Khi cấu hình một file biểu mẫu khảo sát trực tuyến (Google Forms / Microsoft Forms) thu thập thông tin cá nhân của người dân, lập trình viên cần lưu ý nguyên tắc bảo mật nào?', [
+'Mở công khai kết quả phản hồi cho tất cả mọi người cùng xem để tăng tính minh bạch.',
+'Chỉ thu thập đúng các trường thông tin cần thiết, giới hạn quyền xem trang kết quả phản hồi cho người có trách nhiệm và bật bảo mật tài khoản quản trị.',
+'Tự động lưu trữ thông tin mật khẩu tài khoản cá nhân của người điền form.',
+'Chuyển đổi toàn bộ biểu mẫu sang định dạng file văn bản thô 1 dòng.',
+], 1),
+q('Trong công tác số hóa hồ sơ, kỹ thuật "Nhận dạng ký tự quang học" (OCR) đóng vai trò gì quan trọng?', [
+'Tự động dịch ngôn ngữ văn bản từ tiếng Việt sang tiếng Anh.',
+'Chuyển đổi hình ảnh của văn bản chữ viết tay hoặc chữ in thành dữ liệu văn bản dạng chữ thuần có thể tìm kiếm và chỉnh sửa được.',
+'Mã hóa file tài liệu bằng thuật toán đối xứng chuỗi nén.',
+'Tự động gửi file văn bản lên thư mục lưu trữ đám mây của Google Drive.',
+], 1),
+q('Khi trình duyệt hiển thị cảnh báo "Kết nối của bạn không phải là kết nối riêng tư" (Lỗi SSL/TLS), hành động xử lý nào an toàn nhất cho người dùng?', [
+'Bấm chọn mục "Nâng cao" và tiếp tục truy cập trang web bất chấp cảnh báo.',
+'Dừng truy cập trang web đó ngay lập tức, không điền bất kỳ thông tin tài khoản hay mật khẩu nào trên giao diện này.',
+'Tắt tính năng diệt virus của máy tính để trình duyệt không báo lỗi nữa.',
+'Cài đặt lại hệ điều hành của máy tính để khắc phục lỗi mạng.',
+], 1),
+q('Chức năng "Đồng bộ hóa dữ liệu" (Data Synchronization) trên các thiết bị di động có ý nghĩa như thế nào trong đời sống số?', [
+'Làm tăng kích thước dung lượng lưu trữ của các file ảnh cục bộ.',
+'Tự động cập nhật, sao lưu dữ liệu đồng nhất giữa điện thoại, máy tính và Cloud, giúp không bị mất mát thông tin khi thiết bị phần cứng bị hỏng.',
+'Chuyển toàn bộ cuộc gọi thông thường sang cuộc gọi mã hóa qua Internet.',
+'Tự động xóa bỏ các tài khoản người dùng không hoạt động trong 15 phút.',
+], 1),
+q('Khi nhận được một tài liệu chia sẻ qua Cloud có quyền "Editor", nếu bạn lỡ tay xóa một thư mục quan trọng, làm thế nào để khôi phục lại dữ liệu?', [
+'Hệ thống đã mất dữ liệu vĩnh viễn không thể lấy lại được.',
+'Truy cập vào mục "Thùng rác" (Trash/Bin) của dịch vụ đám mây đó để tìm lại thư mục bị xóa và bấm nút Khôi phục (Restore).',
+'Chạy lệnh PowerShell băm mật khẩu dưới máy tính cá nhân.',
+'Yêu cầu tất cả người dùng khác đăng xuất khỏi hệ thống mạng.',
+], 1),
+q('Kỹ năng "Xác thực nguồn tin" trước khi chia sẻ một bài viết lên mạng xã hội đòi hỏi bạn phải kiểm tra yếu tố nào?', [
+'Số lượng lượt thích (Like) và lượt chia sẻ (Share) của bài viết đó.',
+'Bài viết có đến từ trang thông tin điện tử có tên miền chính thống (đuôi .gov.vn, .org.vn) hoặc cơ quan báo chí uy tín không.',
+'Hình ảnh minh họa của bài viết có màu sắc bắt mắt sống động không.',
+'Độ dài văn bản của bài viết có trên 2.000 ký tự hay không.',
+], 1),
+q('Khi sử dụng phần mềm họp trực tuyến (như Zoom, Microsoft Teams), để ngăn chặn kẻ xấu vào phá hoại hoặc phát tán nội dung độc hại, giải pháp nào sau đây là cần thiết?', [
+'Công khai ID và mật khẩu phòng họp lên các hội nhóm mạng xã hội lớn.',
+'Bật tính năng "Phòng chờ" (Waiting Room), đặt mật khẩu mạnh cho phòng họp và chỉ duyệt những người có tên trong danh sách xác thực vào họp.',
+'Tắt tính năng tường lửa bảo mật mạng của máy chủ máy tính.',
+'Ép buộc tất cả thành viên tham gia phải sử dụng kết nối mạng VPN.',
+], 1),
+q('Việc tắt tính năng "Tự động kết nối WiFi" (Auto-connect) trên điện thoại thông minh mang lại lợi ích gì về mặt an toàn thông tin?', [
+'Giúp điện thoại bắt sóng mạng di động 4G/5G tốt hơn.',
+'Ngăn chặn điện thoại tự động kết nối vào các mạng WiFi giả mạo, WiFi độc hại do hacker lập ra để chặn bắt dữ liệu người dùng khi bạn di chuyển.',
+'Làm tăng tốc độ xử lý điểm số của các ứng dụng thi trực tuyến.',
+'Xóa bỏ toàn bộ bộ nhớ đệm cache cookies của trình duyệt web.',
+], 1),
+q('Khi gửi một tệp tin tài liệu nhạy cảm qua Email công vụ, giải pháp nào tăng cường bảo mật dữ liệu tốt nhất?', [
+'Dán thẳng toàn bộ nội dung tài liệu nhạy cảm vào phần thân email chữ thuần.',
+'Nén tệp tin lại, đặt mật khẩu bảo vệ mạnh cho file nén đó và gửi mật khẩu qua một kênh liên lạc tách biệt (như gọi điện hoặc nhắn tin SMS).',
+'Thay đổi phần mở rộng đuôi file sang định dạng cấu trúc phẳng JSON.',
+'Gửi kèm file đó cho toàn bộ địa chỉ email có trong danh bạ hệ thống.',
+], 1),
+q('Trong bảng tính Excel, để đảm bảo người nhập liệu không gõ sai định dạng ngày tháng hoặc số Căn cước công dân (CCCD), tính năng nào cần được áp dụng?', [
+'Conditional Formatting.',
+'Data Validation (Kiểm tra hợp lệ dữ liệu).',
+'Pivot Table.',
+'AutoFilter.',
+], 1),
+q('Khái niệm "Chữ ký số công cộng" được cấp bởi các đơn vị được cấp phép có giá trị pháp lý tương đương với yếu tố nào trong môi trường truyền thống?', [
+'Lời nói chứng thực của người làm chứng tại cơ quan thẩm quyền.',
+'Chữ ký tay của cá nhân và con dấu của tổ chức, doanh nghiệp trên văn bản giấy.',
+'Mật khẩu truy cập vào hệ thống dashboard quản trị nội bộ.',
+'Mã định danh duy nhất của thiết bị phần cứng máy tính.',
+], 1),
+q('Hành vi nào sau đây vi phạm quyền sở hữu trí tuệ và bản quyền trên môi trường số?', [
+'Trích dẫn nguồn rõ ràng tên tác giả khi sử dụng một phần bài viết nghiên cứu.',
+'Tải về, tự ý chỉnh sửa xóa tên tác giả rồi đăng tải lại phần mềm bản quyền, hình ảnh độc quyền lên trang web cá nhân để kinh doanh thương mại.',
+'Mua bản quyền ứng dụng từ cửa hàng ứng dụng chính thống.',
+'Sử dụng các bài học an toàn thông tin miễn phí của cổng đào tạo.',
+], 1),
+q('Khi thiết lập hệ thống định danh, hàm so sánh chuỗi mật khẩu thông thường (như ===) dễ bị tấn công phân tích thời gian phản hồi (Timing Attack). Lập trình viên phòng thủ bằng cách nào?', [
+'Mã hóa đầu vào của người dùng thành một chuỗi Base64 ngẫu nhiên.',
+'Chuyển câu lệnh so sánh chuỗi thực hiện trực tiếp trên dịch vụ đám mây Cloud.',
+'Sử dụng cơ chế so sánh thời gian cố định (Constant-time comparison) bằng hàm chuyên dụng của thư viện crypto.',
+'Giảm độ dài mật khẩu đăng ký tối đa xuống còn 6 ký tự.',
+], 2),
+
+q('Một hệ thống quản lý hồ sơ công vụ lưu trữ thông tin bằng các file dữ liệu phẳng .json trên RAM cache và đồng bộ bất đồng bộ lên Drive. Khi nhiều người cùng thao tác dồn dập, cơ chế nào đảm bảo dữ liệu không bị ghi đè lẫn nhau?', [
+'Cơ chế mã hóa tệp tin bằng thuật toán AES đối xứng.',
+'Cơ chế khóa luồng Mutex (Promise-chain Locking) để cô lập phiên ghi tại một thời điểm.',
+'Tự động ngắt kết nối Internet của các tài khoản gửi yêu cầu muộn hơn.',
+'Chuyển đổi toàn bộ dữ liệu người dùng sang định dạng hex 96 ký tự.',
+], 1),
+
+q('Trên hệ điều hành Linux của máy chủ, lệnh nào sau đây được sử dụng để nén thư mục mã nguồn và dữ liệu phẳng thành tệp sao lưu dự phòng nhanh nhất?', [
+'cat /etc/passwd > backup.txt',
+'grep -r "secret" ./src',
+'tar -czf backup_data.tar.gz ./data ./src',
+'chmod 755 server.js',
+], 2),
+
+q('Khi người dân sử dụng dịch vụ công trực tuyến, tiêu đề HTTP nào (HTTP Header) tự động gửi kèm để hệ thống nhận biết họ đang thao tác bằng điện thoại Android, iPhone hay máy tính Windows?', [
+'Cookie',
+'Content-Type',
+'User-Agent',
+'Referer',
+], 2),
+
+q('Một trang web dịch vụ công bị cấu hình sai lỗi CORS (Cross-Origin Resource Sharing) cho phép giá trị Origin là "*". Nguy cơ bảo mật nghiêm trọng nào sẽ xảy ra?', [
+'Hệ thống máy chủ tự động chuyển sang Chế độ cục bộ (Local mode).',
+'Các trang web độc hại của bên thứ ba có thể gửi yêu cầu trái phép để đọc dữ liệu nhạy cảm hoặc chiếm đoạt phiên làm việc của người dân.',
+'Ứng dụng Express sẽ bị sập hoàn toàn do quá tải hàng đợi ghi.',
+'Dung lượng lưu trữ của tài khoản Google Drive Service Account bị đầy vĩnh viễn.',
+], 1),
+
+q('Trong quy trình phát triển phần mềm an toàn, mục đích chính của việc sử dụng các truy vấn có tham số (Parameterized Queries / Prepared Statements) là để ngăn chặn lỗ hổng nào?', [
+'Path Traversal nhảy thư mục hệ thống.',
+'Command Injection chèn lệnh hệ điều hành chạy ngầm.',
+'SQL Injection chèn câu lệnh truy vấn dữ liệu trái phép.',
+'Brute Force dò quét mật khẩu hàng loạt.',
+], 2),
+
+q('Kẻ tấn công lợi dụng tính năng hiển thị file tài liệu của hệ thống, nhập vào chuỗi truy cập: "?file=../../../../src/config.js" nhằm đánh cắp biến môi trường SESSION_SECRET. Website đang dính lỗ hổng gì?', [
+'Broken Authentication',
+'Command Injection',
+'SQL Injection',
+'Path Traversal (Duyệt qua đường dẫn tệp tin trái phép)',
+], 3),
+
+q('Khi server Node.js nhận được tín hiệu ngắt hệ thống SIGTERM từ nền tảng hosting Render, hàm xử lý nào bắt buộc phải được gọi ngay lập tức để bảo toàn dữ liệu thi?', [
+'Hàm xóa bỏ toàn bộ mật khẩu người dùng để bảo mật.',
+'Hàm flush() để ghi toàn bộ dữ liệu từ RAM cache đồng bộ vĩnh viễn lên Google Drive.',
+'Hàm tự động gửi email thông báo lỗi hệ thống cho quản trị viên.',
+'Hàm reset lại mã ID của thư mục Google Drive.',
+], 1),
+
+q('[TỰ LUẬN NGẮN] Bạn hãy trình bày ngắn gọn ý nghĩa của việc xây dựng kho dữ liệu số dùng chung đối với công tác quản lý hành chính nhà nước?', [
+'Hướng dẫn chấm: Thí sinh nêu được tối thiểu 2 trong các ý sau: \n1. Tăng tính liên thông, chia sẻ dữ liệu giữa các phòng ban, đơn vị.\n2. Giảm thiểu các thủ tục rườm rà, hạn chế việc người dân phải nộp nhiều bản giấy tờ trùng lặp.\n3. Tối ưu hóa thời gian xử lý và nâng cao hiệu quả ra quyết định quản lý.',
+], 0),
+
+q('[TỰ LUẬN NGẮN] Cơ chế xác thực hai lớp (2FA/MFA) hỗ trợ bảo vệ tài khoản công vụ của công chức như thế nào khi mật khẩu chính bị hacker dò quét được?', [
+'Hướng dẫn chấm: Khi mật khẩu chính bị lộ, 2FA yêu cầu thêm một yếu tố xác thực thứ hai (như mã OTP gửi về điện thoại hoặc ứng dụng xác thực) mà chỉ người dùng thật mới nắm giữ. Hacker nếu không có thiết bị vật lý này thì không thể đăng nhập trái phép vào hệ thống.',
+], 0),
+
+q('[TỰ LUẬN NGẮN] Vai trò nòng cốt của lực lượng thanh niên và Tổ công nghệ số cộng đồng tại các khu phố, thôn bản trong chiến dịch Bình dân học vụ số là gì?', [
+'Hướng dẫn chấm: Là lực lượng trực tiếp đi từng ngõ, gõ từng nhà để phổ cập kỹ năng số cho người dân; hướng dẫn trực tiếp cách cài đặt ứng dụng định danh VNeID, đăng ký tài khoản dịch vụ công trực tuyến và thực hiện thanh toán không dùng tiền mặt tại địa phương.',
+], 0),
+
+
+// ========================================================================
+// BỘ ĐỀ 4: BÌNH DÂN HỌC VỤ SỐ VÀ AN TOÀN THÔNG TIN ĐẠI CHÚNG
+// Thời gian làm bài: 35 phút | Số lượng: 50 câu (47 Trắc nghiệm + 3 Tự luận ngắn)
+// ========================================================================
+
+q('Thủ đoạn lừa đảo sử dụng công nghệ Trí tuệ nhân tạo để giả mạo hình ảnh, giọng nói của người thân nhằm mục đích vay tiền gấp có tên gọi là gì?', [
+'Phishing Email',
+'Tấn công DDoS hệ thống',
+'AI Deepfake lừa đảo đại chúng',
+'Mã độc tống tiền Ransomware',
+], 2),
+
+q('Khi nhận được tin nhắn thương hiệu (SMS Brandname) giả mạo Ngân hàng thông báo tài khoản bị khóa và yêu cầu truy cập link lạ để mở lại, người dân cần làm gì?', [
+'Bấm ngay vào đường link để thực hiện theo hướng dẫn bảo mật.',
+'Tuyệt đối không bấm vào link, gọi lên tổng đài chính thức của Ngân hàng để xác minh hoặc báo cơ quan Công an.',
+'Gửi tin nhắn chứa thông tin số thẻ và mã PIN để hệ thống tự xử lý.',
+'Chuyển tiếp tin nhắn đó cho nhiều người trong danh bạ cùng xử lý.',
+], 1),
+
+q('Để bảo vệ thông tin cá nhân khi tương tác trên môi trường mạng xã hội, hành vi nào sau đây được khuyến nghị?', [
+'Công khai số điện thoại, ngày sinh và số CCCD lên phần mô tả thông tin cá nhân.',
+'Cài đặt các ứng dụng không rõ nguồn gốc từ các liên kết lạ hoặc file đuôi .APK.',
+'Kiểm tra kỹ quyền truy cập của ứng dụng và chỉ chia sẻ thông tin thực sự thiết yếu.',
+'Sử dụng chung một mật khẩu đơn giản cho tất cả tài khoản trực tuyến của mình.',
+], 2),
+
+q('Khi kết nối vào mạng WiFi công cộng không có mật khẩu (như tại quán cà phê, quảng trường), rủi ro lớn nhất về an toàn thông tin là gì?', [
+'Thiết bị di động của người dùng bị sụt dung lượng pin nhanh hơn.',
+'Kẻ xấu có thể chặn bắt và đọc trộm các gói tin truyền qua mạng (như mật khẩu, tài khoản ngân hàng không mã hóa).',
+'Hệ điều hành của máy tự động xóa bỏ toàn bộ danh bạ điện thoại.',
+'Tốc độ tải video của thiết bị bị giảm đi đáng kể.',
+], 1),
+
+q('Một phần mềm độc hại phát tán ngầm dưới dạng ứng dụng mã nguồn mở tên là "OpenClaw" có hành vi nguy hiểm nào sau đây?', [
+'Tự động tối ưu hóa và dọn dẹp các tệp tin rác của hệ điều hành.',
+'Đánh cắp thông tin ví tiền điện tử và dữ liệu lưu trong trình quản lý mật khẩu của nạn nhân.',
+'Tạo ra các chứng chỉ bảo mật SSL miễn phí cấp cho trang web dịch vụ công.',
+'Ngắt kết nối mạng WiFi của các máy tính xung quanh khu vực.',
+], 1),
+
+q('Cơ chế xác thực 2 lớp (2FA/MFA) giúp bảo vệ an toàn tài khoản số của người dân dựa trên nguyên lý cốt lõi nào?', [
+'Yêu cầu người dùng phải nhập mật khẩu chính xác hai lần liên tiếp khi đăng nhập.',
+'Kết hợp giữa cái người dùng biết (mật khẩu) và cái người dùng có/nắm giữ (mã OTP thiết bị vật lý hoặc ứng dụng xác thực).',
+'Tự động thay đổi tên hiển thị của tài khoản sau mỗi 12 giờ.',
+'Chặn tất cả các địa chỉ IP truy cập từ bên ngoài khu vực tỉnh thành.',
+], 1),
+
+q('Dấu hiệu nào sau đây cảnh báo rõ ràng nhất việc một chiếc điện thoại thông minh đã bị dính mã độc chiếm quyền điều khiển từ xa?', [
+'Điện thoại hiển thị thông báo yêu cầu cắm sạc khi dung lượng pin xuống dưới 20%.',
+'Thiết bị tự động mở ứng dụng, màn hình tự sáng vào ban đêm, tài khoản ngân hàng số tự thực hiện lệnh chuyển tiền dù không thao tác.',
+'Thời gian tải trang web chậm hơn bình thường khoảng 2 giây do sóng yếu.',
+'Ứng dụng camera tự động tắt khi người dùng chuyển sang chế độ chụp đêm.',
+], 1),
+
+q('Khi thiết lập mật khẩu cho tài khoản số cá nhân, cụm từ nào sau đây được đánh giá là mạnh và an toàn nhất trước các cuộc tấn công dò quét?', [
+'admin123456',
+'vksnddanang2026',
+'Kh0nG_S0_M4_D0c_!@#',
+'13102026',
+], 2),
+
+q('Mục đích chính của chiến dịch "Bình dân học vụ số" được triển khai rộng rãi tại các địa phương hiện nay là gì?', [
+'Đào tạo chuyên sâu các kỹ sư công nghệ thông tin trình độ cao.',
+'Phổ cập các kỹ năng số cơ bản, nâng cao nhận thức an toàn thông tin và xóa mù công nghệ cho mọi tầng lớp nhân dân.',
+'Bán các phần mềm diệt virus có bản quyền thương mại cho người dân.',
+'Thay thế toàn bộ các thủ tục hành chính trực tiếp bằng robot tự động.',
+], 1),
+
+q('Khi chia sẻ thông tin trên môi trường số, việc chụp ảnh và đăng tải rõ nét Căn cước công dân (CCCD) lên mạng xã hội có thể dẫn đến hậu quả gì?', [
+'Tài khoản mạng xã hội của bạn sẽ nhận được nhiều tương tác hơn.',
+'Tội phạm công nghệ cao lợi dụng hình ảnh đó để đăng ký vay tiền app trực tuyến, mở tài khoản ngân hàng rác hoặc lừa đảo chiếm đoạt tài sản.',
+'Hệ thống VNeID sẽ tự động nâng cấp tài khoản của bạn lên mức độ 2.',
+'Làm tăng băng thông truyền tải dữ liệu của mạng viễn thông địa phương.',
+], 1),
+
+q('Để nhận biết một trang web có nguy cơ cao là giả mạo (Phishing page) nhằm đánh cắp thông tin, yếu tố nào dưới đây là quan trọng nhất cần kiểm tra?', [
+'Màu sắc giao diện của trang web đậm hay nhạt hơn bình thường.',
+'Tên miền (Domain) trên thanh địa chỉ bị sai lỗi chính tả, sai đuôi mở rộng (ví dụ: vksnd.gov.vn bị đổi thành vksnd-gov.com hoặc vks-danang.net).',
+'Trang web không có các hiệu ứng chuyển động hoặc không có video giới thiệu.',
+'Số lượng bài viết hiển thị trên trang chủ ít hơn 10 bài.',
+], 1),
+q('Hành vi nào sau đây thể hiện kỹ năng số văn minh và an toàn khi tham gia các hội nhóm công cộng trên môi trường mạng?', [
+'Chia sẻ ngay các tin tức giật gân, chưa được kiểm chứng từ các nguồn tin lạ.',
+'Không lăng mạ, xúc phạm người khác; không phát tán thông tin độc hại và chủ động xác minh tính xác thực của tin tức trước khi chia sẻ.',
+'Sử dụng tài khoản ảo để công kích, nói xấu các cơ quan, tổ chức nhà nước.',
+'Tự ý thu thập và công khai số điện thoại, thông tin gia đình của người khác lên mạng.',
+], 1),
+q('Ứng dụng di động chính thống nào dưới đây do Bộ Công an phát triển nhằm phục vụ định danh, xác thực điện tử và dịch vụ công cho công dân Việt Nam?', [
+'VNeID',
+'Zalo',
+'VssID',
+'eTax Mobile',
+], 0),
+q('Khi người dân nhận được cuộc gọi từ số lạ tự xưng là cán bộ Viện kiểm sát hoặc Công an đe dọa liên quan đến đường dây tội phạm và yêu cầu chuyển tiền vào tài khoản tạm giữ, hành vi ứng xử đúng nhất là gì?', [
+'Hoảng sợ và ra ngay ngân hàng rút toàn bộ tiền tiết kiệm chuyển theo yêu cầu.',
+'Tuyệt đối không cung cấp thông tin cá nhân, không chuyển tiền, tắt máy và báo ngay cho cơ quan chức năng hoặc Công an nơi gần nhất.',
+'Cung cấp toàn bộ mật khẩu ứng dụng ngân hàng số để cán bộ tự kiểm tra.',
+'Rủ thêm người thân cùng nộp tiền để cùng chứng minh sự trong sạch.',
+], 1),
+q('Tại sao việc cài đặt các ứng dụng bẻ khóa (Crack), phần mềm lậu trên máy tính cá nhân lại có nguy cơ gây mất an toàn thông tin rất cao?', [
+'Làm máy tính chạy tốn nhiều điện năng hơn bình thường.',
+'Các file bẻ khóa thường bị kẻ xấu chèn sẵn mã độc chạy ngầm (Trojan, Keylogger) để thu thập mật khẩu và chiếm quyền điều khiển máy.',
+'Hệ điều hành sẽ tự động xóa bỏ toàn bộ các bộ cài Microsoft Office.',
+'Trình duyệt web không thể truy cập được vào các trang mạng xã hội.',
+], 1),
+q('Khi thiết lập hệ thống Web, một lỗ hổng xuất hiện nếu lập trình viên dùng thư viện xác thực nhưng lại gọi hàm "jwt.decode()" mà không verify chữ ký. Nguy cơ nào xảy ra?', [
+'Hệ thống tự động xóa dữ liệu tệp phẳng lưu trên RAM cache.',
+'Kẻ tấn công có thể tự tạo ra một token giả với quyền Admin để đăng nhập trái phép mà hệ thống vẫn chấp nhận.',
+'Trình duyệt của người dùng sẽ tự động chặn toàn bộ yêu cầu HTTP.',
+'Lượt thi của thí sinh sẽ tự động được cộng thêm thời gian làm bài.',
+], 1),
+q('Trong kịch bản diễn tập an toàn thông tin phòng thủ chuỗi thử thách Natas, lỗi cấu hình file "robots.txt" thường bị lợi dụng để làm gì?', [
+'Tấn công từ chối dịch vụ làm sập hoàn toàn máy chủ Express.',
+'Kẻ tấn công đọc nội dung file để tìm ra các thư mục ẩn, đường dẫn nhạy cảm mà quản trị viên cố tình giấu không cho bộ máy tìm kiếm quét dữ liệu.',
+'Thay đổi thuật toán băm mật khẩu từ scrypt sang MD5 thô.',
+'Tự động phân quyền Editor thư mục Drive cho Service Account.',
+], 1),
+q('Khi xây dựng chức năng tải file lên máy chủ (File Upload), nếu lập trình viên chỉ kiểm tra đuôi file bằng JavaScript ở Frontend thì kẻ tấn công vượt qua bằng cách nào?', [
+'Tấn công Brute Force bẻ khóa mật khẩu tài khoản Admin.',
+'Sử dụng công cụ chặn bắt như Burp Suite để sửa đổi đuôi file trực tiếp trên đường truyền HTTP request sau khi đã vượt qua bộ lọc Frontend.',
+'Thay đổi mã ID thư mục Google Drive lưu trữ hệ thống.',
+'Sử dụng thuật toán mã hóa đối xứng AES để mã hóa file độc hại.',
+], 1),
+q('Lỗ hổng bảo mật nào cho phép kẻ tấn công chèn chuỗi ký tự chứa lệnh hệ điều hành (ví dụ dấu chấm phẩy và lệnh hệ thống) vào ô nhập liệu để ép máy chủ thực thi mã độc?', [
+'SQL Injection',
+'Command Injection',
+'Path Traversal',
+'Cookie Tampering',
+], 1),
+q('Biện pháp phòng thủ nào dưới đây giúp ngăn chặn triệt để lỗ hổng Path Traversal khi hệ thống thực hiện đọc ghi file dựa trên tham số người dùng nhập vào?', [
+'Chuyển toàn bộ hệ thống sang sử dụng giao thức bảo mật HTTPS.',
+'Lọc sạch và chặn toàn bộ các chuỗi ký tự điều hướng nhảy thư mục nguy hiểm như "../" hoặc "..\".',
+'Mã hóa toàn bộ nội dung file lưu trên ổ cứng bằng thuật toán băm SHA-256.',
+'Đặt thời hạn hiệu lực của mã token phiên làm việc xuống còn 15 phút.',
+], 1),
+q('Kỹ thuật tấn công chèn câu lệnh truy vấn dữ liệu trái phép vào các ô nhập liệu nhằm bẻ khóa logic xác thực đăng nhập mà không cần biết mật khẩu thật có tên gọi là gì?', [
+'Command Injection',
+'SQL Injection',
+'Path Traversal',
+'Brute Force Attack',
+], 1),
+q('Để bảo vệ thư mục máy chủ khỏi mã độc PHP đội lốt file ảnh, kỹ thuật đọc các byte đặc trưng nhận diện định dạng thực tế ở đầu file được gọi là gì?', [
+'Kiểm tra Mime-Type',
+'Kiểm tra Magic Bytes (ví dụ kiểm tra chuỗi GIF8; ở đầu file)',
+'Kiểm tra File Extension',
+'Kiểm tra File Size',
+], 1),
+q('Khi cấu hình file "render.yaml" để triển khai ứng dụng 1-click lên hosting Render, biến môi trường nào bắt buộc phải chứa chuỗi Base64 của file key dịch vụ đám mây?', [
+'SESSION_SECRET',
+'GOOGLE_DRIVE_FOLDER_ID',
+'GOOGLE_SERVICE_ACCOUNT_JSON',
+'ADMIN_CCCDS',
+], 2),
+q('Khi người dân thực hiện thanh toán hóa đơn bằng mã QR trên ứng dụng Ngân hàng số, hành vi nào sau đây cần làm để đảm bảo không bị chuyển nhầm tiền cho kẻ lừa đảo?', [
+'Bấm xác nhận chuyển tiền ngay lập tức sau khi quét mã xong.',
+'Luôn kiểm tra kỹ tên chủ tài khoản nhận và số tiền hiển thị trên ứng dụng có trùng khớp với thông tin đơn vị cung cấp dịch vụ hay không.',
+'Chụp ảnh màn hình mã QR đăng tải công khai lên các diễn đàn mạng xã hội.',
+'Nhờ người lạ xung quanh bấm hộ mã PIN xác thực giao dịch tài chính.',
+], 1),
+q('Hình thức tấn công gửi hàng loạt yêu cầu truy cập dồn dập từ nhiều nguồn khác nhau nhằm làm tê liệt, nghẽn băng thông và gây sập website dịch vụ công gọi là gì?', [
+'Phishing',
+'Tấn công từ chối dịch vụ phân tán (DDoS)',
+'SQL Injection',
+'Path Traversal',
+], 1),
+q('Khi người dân đổi điện thoại mới, để chuyển ứng dụng định danh điện tử VNeID mức độ 2 sang thiết bị mới một cách an toàn và nhanh nhất, cơ chế nào được sử dụng?', [
+'Đến trực tiếp cơ quan Công an quận, huyện để làm lại từ đầu.',
+'Sử dụng tính năng đăng nhập bằng quét chip NFC trên thẻ Căn cước công dân gắn chip bằng điện thoại mới.',
+'Nhờ tổng đài viễn thông gửi lại toàn bộ file dữ liệu phẳng lưu trên RAM.',
+'Tự ý sửa đổi thông tin file cấu hình .env của ứng dụng trên máy tính.',
+], 1),
+q('Trong việc quản lý mật khẩu gia đình, thói quen nào sau đây giúp người cao tuổi bảo vệ tài khoản số của mình an toàn nhất?', [
+'Ghi mật khẩu lên tờ giấy nhớ và dán trực tiếp lên mặt trước của màn hình máy tính.',
+'Sử dụng cụm từ mật khẩu gắn liền với một kỷ niệm đặc biệt, có viết hoa, thêm số, ký tự đặc biệt và tuyệt đối không chia sẻ cho người lạ.',
+'Đặt mật khẩu là số điện thoại hoặc họ tên đầy đủ không dấu của mình.',
+'Sử dụng chung một mật khẩu duy nhất cho cả tài khoản Facebook và tài khoản Ngân hàng.',
+], 1),
+q('Khi sử dụng các ứng dụng mạng xã hội, tính năng "Quyền riêng tư" cần được cấu hình như thế nào để hạn chế bị tội phạm thu thập thông tin lập tài khoản giả mạo?', [
+'Để chế độ công khai hoàn toàn tất cả bài viết, danh sách bạn bè và số điện thoại.',
+'Giới hạn đối tượng xem danh sách bạn bè, thông tin liên hệ và bài viết cá nhân ở chế độ "Chỉ bạn bè" hoặc "Chỉ mình tôi".',
+'Tắt tính năng xác thực 2 lớp để tránh bị nghẽn mạng viễn thông.',
+'Cho phép tất cả người lạ tự động gắn thẻ (tag) vào các bài viết quảng cáo.',
+], 1) (X) // Chèn tiếp các câu hỏi trắc nghiệm phổ thông về kỹ năng số cho đến câu số 47
+q('Trong kiến trúc hệ thống dịch vụ công trực tuyến, thành phần "RAM cache" đóng vai trò gì trong việc tối ưu hóa hiệu suất phục vụ người dân?', [
+'Lưu trữ dữ liệu vĩnh viễn kể cả khi máy chủ bị mất điện đột ngột.',
+'Lưu trữ tạm thời dữ liệu phẳng được tải về từ Google Drive lúc khởi động để phục vụ truy vấn của người dùng với tốc độ tối đa, không gây nghẽn hệ thống.',
+'Tự động băm mật khẩu người dùng bằng thuật toán scrypt nâng cao.',
+'Quét các cổng dịch vụ mạng đang mở của hệ thống máy tính người dân.',
+], 1),
+q('[TỰ LUẬN NGẮN] Nêu các dấu hiệu cơ bản để người dân nhận biết một video cuộc gọi trực tuyến có sử dụng công nghệ lừa đảo Deepfake?', [
+'Hướng dẫn chấm: Thí sinh nêu được tối thiểu 2 trong các dấu hiệu sau:\n1. Khuôn mặt người gọi nhìn đơ cứng, cử động mắt, môi không tự nhiên hoặc bị méo mó.\n2. Giọng nói bị trễ nhịp so với hình ảnh, nghe có tiếng robot hoặc không rõ ràng.\n3. Hướng ánh sáng trên khuôn mặt không đồng nhất với môi trường xung quanh, xuất hiện các vùng mờ quanh viền cổ và tóc.',
+], 0),
+q('[TỰ LUẬN NGẮN] Việc cài đặt các ứng dụng bẻ khóa (Crack) hoặc tự ý tải các tệp tin đuôi .apk không rõ nguồn gốc từ Internet tiềm ẩn rủi ro gì cho điện thoại của người dân?', [
+'Hướng dẫn chấm: Thí sinh nêu được các ý cốt lõi:\nCác phần mềm này thường bị tội phạm công nghệ cao chèn sẵn mã độc ngầm (Trojan, Keylogger). Khi cài đặt vào máy, mã độc sẽ đánh cắp mật khẩu, thông tin tài khoản ngân hàng số hoặc tự động chiếm quyền trợ năng (Accessibility Service) để theo dõi hành vi và điều khiển điện thoại trái phép từ xa nhằm chiếm đoạt tài sản.',
+], 0),
+q('[TỰ LUẬN NGẮN] Để lan tỏa mạnh mẽ phong trào Bình dân học vụ số và hỗ trợ người dân yếu thế tiếp cận công nghệ tại địa phương, lực lượng đoàn viên thanh niên cần triển khai những giải pháp cụ thể nào?', [
+'Hướng dẫn chấm: Thí sinh nêu được tối thiểu 2 giải pháp thiết thực:\n1. Thành lập các tổ công nghệ số thanh niên xung kích trực tiếp hỗ trợ, hướng dẫn người dân tại bộ phận một cửa hoặc các nhà văn hóa.\n2. Triển khai các chiến dịch "đi từng ngõ, gõ từng nhà" cầm tay chỉ việc hướng dẫn người cao tuổi, người lao động cách sử dụng dịch vụ công, cài VNeID và thanh toán không dùng tiền mặt.\n3. Tổ chức các buổi tuyên truyền chuyên đề sinh động về nhận biết thủ đoạn lừa đảo công nghệ cao để nâng cao sức đề kháng an toàn thông tin cho cộng đồng.',
+], 0);
+
 /* ==================== ĐÓNG GÓI & NẠP ==================== */
 
 /**
